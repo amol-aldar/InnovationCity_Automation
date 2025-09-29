@@ -1,0 +1,98 @@
+{
+  "NavigationBar": {
+    "appLauncher": {
+      "locatorType": "css",
+      "locatorValue": "button.slds-context-bar__button.slds-icon-waffle_container",
+      "fallback": [
+        {
+          "locatorType": "xpath",
+          "locatorValue": "//button[@title='App Launcher']"
+        }
+      ]
+    },
+    "homeTab": {
+      "locatorType": "linktext",
+      "locatorValue": "Home",
+      "fallback": [
+        {
+          "locatorType": "css",
+          "locatorValue": "a[href='/lightning/page/home']"
+        },
+        {
+          "locatorType": "xpath",
+          "locatorValue": "//one-app-nav-bar-menu-item//a[@title='Home']"
+        }
+      ]
+    },
+    "casesTab": {
+      "locatorType": "linktext",
+      "locatorValue": "Cases",
+      "fallback": [
+        {
+          "locatorType": "css",
+          "locatorValue": "a[title='Cases']"
+        },
+        {
+          "locatorType": "xpath",
+          "locatorValue": "//one-app-nav-bar-menu-item//a[@title='Cases']"
+        }
+      ]
+    },
+    "accountsTab": {
+      "locatorType": "linktext",
+      "locatorValue": "Accounts",
+      "fallback": [
+        {
+          "locatorType": "css",
+          "locatorValue": "a[title='Accounts']"
+        },
+        {
+          "locatorType": "xpath",
+          "locatorValue": "//one-app-nav-bar-menu-item//a[@title='Accounts']"
+        }
+      ]
+    },
+    "contactsTab": {
+      "locatorType": "linktext",
+      "locatorValue": "Contacts",
+      "fallback": [
+        {
+          "locatorType": "css",
+          "locatorValue": "a[title='Contacts']"
+        },
+        {
+          "locatorType": "xpath",
+          "locatorValue": "//one-app-nav-bar-menu-item//a[@title='Contacts']"
+        }
+      ]
+    },
+    "opportunitiesTab": {
+      "locatorType": "linktext",
+      "locatorValue": "Opportunities",
+      "fallback": [
+        {
+          "locatorType": "css",
+          "locatorValue": "a[title='Opportunities']"
+        },
+        {
+          "locatorType": "xpath",
+          "locatorValue": "//one-app-nav-bar-menu-item//a[@title='Opportunities']"
+        }
+      ]
+    },
+    "leadsTab": {
+      "locatorType": "linktext",
+      "locatorValue": "Leads",
+      "fallback": [
+        {
+          "locatorType": "css",
+          "locatorValue": "a[title='Leads']"
+        },
+        {
+          "locatorType": "xpath",
+          "locatorValue": "//one-app-nav-bar-item-root//a[@title='Leads']"
+        }
+      ]
+    }
+  }
+}

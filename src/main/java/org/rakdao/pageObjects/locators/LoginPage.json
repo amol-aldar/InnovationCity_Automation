@@ -1,0 +1,51 @@
+{
+  "LoginPage": {
+    "usernameField": {
+      "locatorType": "id",
+      "locatorValue": "username",
+      "fallback": [
+        { "locatorType": "css", "locatorValue": "input[name='username']" },
+        { "locatorType": "xpath", "locatorValue": "//input[@type='email' and @name='username']" }
+      ]
+    },
+    "passwordField": {
+      "locatorType": "id",
+      "locatorValue": "password",
+      "fallback": [
+        { "locatorType": "css", "locatorValue": "input[name='pw']" },
+        { "locatorType": "xpath", "locatorValue": "//input[@type='password']" }
+      ]
+    },
+    "loginButton": {
+      "locatorType": "id",
+      "locatorValue": "Login",
+      "fallback": [
+        { "locatorType": "css", "locatorValue": "input[value*='Log In']" },
+        { "locatorType": "xpath", "locatorValue": "//input[@type='submit' and contains(@value,'Log In')]" }
+      ]
+    },
+    "rememberMeCheckbox": {
+      "locatorType": "id",
+      "locatorValue": "rememberUn",
+      "fallback": [
+        { "locatorType": "css", "locatorValue": "input[name='rememberUn']" }
+      ]
+    },
+    "errorMessage": {
+      "locatorType": "id",
+      "locatorValue": "error",
+      "fallback": [
+        { "locatorType": "css", "locatorValue": ".loginError" },
+        { "locatorType": "xpath", "locatorValue": "//div[contains(@class,'loginError')]" }
+      ]
+    },
+    "forgotPasswordLink": {
+      "locatorType": "id",
+      "locatorValue": "forgot_password_link",
+      "fallback": [
+        { "locatorType": "linktext", "locatorValue": "Forgot Your Password?" },
+        { "locatorType": "xpath", "locatorValue": "//a[contains(@href,'forgotpassword')]" }
+      ]
+    }
+  }
+}

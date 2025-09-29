@@ -1,0 +1,122 @@
+{
+  "LeadSalesPath": {
+    "tabs": {
+      "New": {
+        "locatorType": "xpath",
+        "locatorValue": "//li[@data-name='New']/a",
+        "fallback": [
+          {
+            "locatorType": "css",
+            "locatorValue": "li[data-name='New'] > a"
+          }
+        ],
+        "description": "The 'New' stage in the Sales Path",
+        "action": "click"
+      },
+      "ContactInitiated1": {
+        "locatorType": "xpath",
+        "locatorValue": "//li[@data-name='Contact Initiated 1']/a",
+        "fallback": [
+          {
+            "locatorType": "css",
+            "locatorValue": "li[data-name='Contact Initiated 1'] > a"
+          }
+        ],
+        "description": "The 'Contact Initiated 1' stage",
+        "action": "click"
+      },
+      "ContactInitiated2": {
+        "locatorType": "xpath",
+        "locatorValue": "//li[@data-name='Contact Initiated 2']/a",
+        "fallback": [
+          {
+            "locatorType": "css",
+            "locatorValue": "li[data-name='Contact Initiated 2'] > a"
+          }
+        ],
+        "description": "The 'Contact Initiated 2' stage",
+        "action": "click"
+      },
+      "ContactInitiated3": {
+        "locatorType": "xpath",
+        "locatorValue": "//li[@data-name='Contact Initiated 3']/a",
+        "fallback": [
+          {
+            "locatorType": "css",
+            "locatorValue": "li[data-name='Contact Initiated 3'] > a"
+          }
+        ],
+        "description": "The 'Contact Initiated 3' stage",
+        "action": "click"
+      },
+      "ContactInitiated4": {
+        "locatorType": "xpath",
+        "locatorValue": "//li[@data-name='Contact Initiated 4']/a",
+        "fallback": [
+          {
+            "locatorType": "css",
+            "locatorValue": "li[data-name='Contact Initiated 4'] > a"
+          }
+        ],
+        "description": "The 'Contact Initiated 4' stage",
+        "action": "click"
+      },
+      "ContactInitiated5": {
+        "locatorType": "xpath",
+        "locatorValue": "//li[@data-name='Contact Initiated 5']/a",
+        "fallback": [
+          {
+            "locatorType": "css",
+            "locatorValue": "li[data-name='Contact Initiated 5'] > a"
+          }
+        ],
+        "description": "The 'Contact Initiated 5' stage",
+        "action": "click"
+      },
+      "Unqualified": {
+        "locatorType": "xpath",
+        "locatorValue": "//li[@data-name='Unqualified']/a",
+        "fallback": [
+          {
+            "locatorType": "css",
+            "locatorValue": "li[data-name='Unqualified'] > a"
+          }
+        ],
+        "description": "The 'Unqualified' stage",
+        "action": "click"
+      },
+      "Converted": {
+        "locatorType": "xpath",
+        "locatorValue": "//li[@data-name='Converted']/a",
+        "fallback": [
+          {
+            "locatorType": "css",
+            "locatorValue": "li[data-name='Converted'] > a"
+          }
+        ],
+        "description": "The 'Converted' stage",
+        "action": "click"
+      },
+      "dynamic": {
+        "locatorType": "xpath",
+        "locatorValue": "//ul[contains(@class,'slds-path__nav')]//span[@class='title slds-path__title' and text()='{stageName}']",
+        "description": "Dynamic stage locator, replace {stageName} with the actual stage",
+        "action": "click"
+      }
+    },
+    "actions": {
+      "markStatusAsComplete": {
+        "locatorType": "xpath",
+        "locatorValue": "//button[contains(@class,'slds-path__mark-complete')]",
+        "fallback": [
+          {
+            "locatorType": "css",
+            "locatorValue": "button.slds-button_brand.slds-path__mark-complete"
+          }
+        ],
+        "description": "Button to mark the current Sales Path stage as complete",
+        "action": "click"
+      }
+    }
+  }
+}

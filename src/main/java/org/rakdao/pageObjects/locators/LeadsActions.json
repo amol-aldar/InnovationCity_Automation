@@ -1,0 +1,64 @@
+{
+  "LeadsActions": {
+    "newButton": {
+      "locatorType": "xpath",
+      "locatorValue": "//li[@data-target-selection-name='sfdc:StandardButton.Lead.New']//a[@title='New']",
+      "fallback": [
+        {
+          "locatorType": "css",
+          "locatorValue": "li[data-target-selection-name='sfdc:StandardButton.Lead.New'] a[title='New']"
+        }
+      ]
+    },
+    "intelligenceViewButton": {
+      "locatorType": "xpath",
+      "locatorValue": "//li[@data-target-selection-name='sfdc:StandardButton.Lead.IntelligenceView']//a[@title='Intelligence View']",
+      "fallback": [
+        {
+          "locatorType": "css",
+          "locatorValue": "li[data-target-selection-name='sfdc:StandardButton.Lead.IntelligenceView'] a[title='Intelligence View']"
+        }
+      ]
+    },
+    "importButton": {
+      "locatorType": "xpath",
+      "locatorValue": "//li[@data-target-selection-name='sfdc:StandardButton.Lead.Import']//a[@title='Import']",
+      "fallback": [
+        {
+          "locatorType": "css",
+          "locatorValue": "li[data-target-selection-name='sfdc:StandardButton.Lead.Import'] a[title='Import']"
+        }
+      ]
+    },
+    "changeStatusButton": {
+      "locatorType": "xpath",
+      "locatorValue": "//li[@data-target-selection-name='sfdc:StandardButton.Lead.MassChangeStatus']//a[@title='Change Status']",
+      "fallback": [
+        {
+          "locatorType": "css",
+          "locatorValue": "li[data-target-selection-name='sfdc:StandardButton.Lead.MassChangeStatus'] a[title='Change Status']"
+        }
+      ]
+    },
+    "changeOwnerButton": {
+      "locatorType": "xpath",
+      "locatorValue": "//li[@data-target-selection-name='sfdc:StandardButton.Lead.MassChangeOwner']//a[@title='Change Owner']",
+      "fallback": [
+        {
+          "locatorType": "css",
+          "locatorValue": "li[data-target-selection-name='sfdc:StandardButton.Lead.MassChangeOwner'] a[title='Change Owner']"
+        }
+      ]
+    },
+    "moreActionsDropdown": {
+      "locatorType": "xpath",
+      "locatorValue": "//li[contains(@class,'oneActionsDropDown')]//a[contains(@title,'Show more actions')]",
+      "fallback": [
+        {
+          "locatorType": "css",
+          "locatorValue": "li.oneActionsDropDown a[title*='Show more actions']"
+        }
+      ]
+    }
+  }
+}
