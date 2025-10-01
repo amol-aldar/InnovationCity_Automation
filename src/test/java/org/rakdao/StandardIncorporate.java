@@ -22,7 +22,7 @@ public class StandardIncorporate extends BaseClass {
     private OpportunityPage opportunityPage;
 
     @Test
-    public void newStandardIncorporate() throws IOException {
+    public void newStandardIncorporate() throws IOException, InterruptedException {
         try {
             log.info("=== Starting Standard Incorporate Test ===");
 
@@ -68,6 +68,7 @@ public class StandardIncorporate extends BaseClass {
             opportunityPage.chooseProductFromStandardBook("Standard Company / 1 visa / 1 year");
             opportunityPage.clickOnCta("Next");
             log.info("Product selection completed.");
+            Thread.sleep(3000);
 
             log.info("=== Standard Incorporate Test Completed Successfully ===");
 

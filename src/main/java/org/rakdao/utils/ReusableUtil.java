@@ -20,6 +20,10 @@ public class ReusableUtil {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
     }
 
+    public void scrollDownByPixel(int pixels) {
+        ((JavascriptExecutor) driver).executeScript("window.scrollBy(0," + pixels + ");");
+    }
+
     // ✅ Wait for visibility
     public WebElement waitForVisibility(WebElement element) {
         logger.info("Waiting for visibility of element: {}", element);

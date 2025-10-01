@@ -453,6 +453,7 @@ public class HomePage extends ReusableUtil {
 
             // Click with JS fallback
             try {
+                Thread.sleep(1000);
                 button.click();
             } catch (ElementClickInterceptedException e) {
                 logger.warn("Normal click failed, using JS click fallback for '{}'", ctaText);
