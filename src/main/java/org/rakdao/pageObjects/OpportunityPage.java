@@ -19,8 +19,9 @@ public class OpportunityPage extends ReusableUtil {
 
     private final WebDriver driver;
     private static final Logger logger = LoggerFactory.getLogger(OpportunityPage.class);
-SoftAssert softAssert= new SoftAssert();
-    public OpportunityPage(WebDriver driver){
+    SoftAssert softAssert = new SoftAssert();
+
+    public OpportunityPage(WebDriver driver) {
         super(driver);
         this.driver = driver;
         PageFactory.initElements(driver, this);
@@ -39,8 +40,13 @@ SoftAssert softAssert= new SoftAssert();
     @FindBy(css = "div.title.forceMultiAddMultiEditHeader h2")
     private WebElement addProductsModalTitleEle;
 
-    @FindBy(css = "input[class*='default input uiInput uiInputTextForAutocomplete']")
+    @FindBy(css = "input[title='Search Products']")
     private WebElement productSearchBoxEle;
+
+    @FindBy(xpath = "//span[@part='formatted-rich-text' and contains(., 'visa') and contains(., 'year')]")
+    private List<WebElement> productDropdown;
+
+
 
     // Table element
     @FindBy(css = ".slds-grid.listDisplays.safari-workaround-anchor table.slds-table")
@@ -51,7 +57,7 @@ SoftAssert softAssert= new SoftAssert();
     private List<WebElement> tableHeaders;
 
     // Rows
-    @FindBy(css = "tbody tr")
+    @FindBy(css = "tbody tr th span a")
     private List<WebElement> tableRows;
 
     @FindBy(css = "th.slds-cell-edit.cellContainer a")
@@ -63,16 +69,20 @@ SoftAssert softAssert= new SoftAssert();
     private WebElement scrollContainer;
 
 
-    @FindBy(css=".modal-footer.slds-modal__footer button span")
+    @FindBy(css = ".modal-footer.slds-modal__footer button span")
     List<WebElement> priceBookCtasEle;
 
 
-    @FindBy(css="ul.slds-path__nav li a span.title.slds-path__title")
+    @FindBy(css = "ul.slds-path__nav li a span.title.slds-path__title")
     List<WebElement> stagesEle;
 
 
     public void clickAddProduct() {
         logger.info("Clicking 'Add Products' button...");
+        By companyNameEle=By.xpath("//span[text()='Company Name']");
+        scrollToElement(driver.findElement(companyNameEle));
+        // scrollDownByPixel(500);
+
         waitForVisibility(addProductButtonEle);
         try {
 
@@ -105,9 +115,9 @@ SoftAssert softAssert= new SoftAssert();
 
     public void goToProductListingModal(String ctaText) {
         logger.info("Selecting product from Price Book modal, looking for CTA: {}", ctaText);
-            //  Wait for modal to appear
+        //  Wait for modal to appear
         waitForVisibility(priceBookModalTitleEle);
-        softAssert.assertEquals(priceBookModalTitleEle.getText(),"Choose Price Book");
+        softAssert.assertEquals(priceBookModalTitleEle.getText(), "Choose Price Book");
 
         try {
             //  Wait for modal to appear
@@ -143,82 +153,132 @@ SoftAssert softAssert= new SoftAssert();
         }
     }
 
-    public void chooseProductFromStandardBook(String productName) {
-            logger.info("Attempting to select product: {}", productName);
+    /*public void chooseProductFromStandardBook(String productName) {
+        logger.info("Attempting to select product: {}", productName);
 
-            try {
-                // Wait for table to be visible
-                wait.until(ExpectedConditions.visibilityOf(productTable));
+        try {
+            // Wait for table to be visible
+            wait.until(ExpectedConditions.visibilityOf(productTable));
 
-                // Find "Product Name" column index
-                int productNameIndex = -1;
-                for (int i = 0; i < tableHeaders.size(); i++) {
-                    String headerText = tableHeaders.get(i).getText().trim();
-                    logger.info("Header[{}]: {}", i, headerText);
-                    if (headerText.equalsIgnoreCase("Product Name")) {
-                        productNameIndex = i;
-                        break;
-                    }
+            // Find "Product Name" column index
+            int productNameIndex = -1;
+            for (int i = 0; i < tableHeaders.size(); i++) {
+                String headerText = tableHeaders.get(i).getText().trim();
+                logger.info("Header[{}]: {}", i, headerText);
+                if (headerText.equalsIgnoreCase("Product Name")) {
+                    productNameIndex = i;
+                    break;
                 }
+            }
 
-                if (productNameIndex == -1) {
-                    throw new RuntimeException("❌ 'Product Name' column not found in table headers.");
-                }
+            if (productNameIndex == -1) {
+                throw new RuntimeException("❌ 'Product Name' column not found in table headers.");
+            }
 
-                boolean productFound = false;
-                int previousRowCount = 0;
+            boolean productFound = false;
+            int previousRowCount = 0;
 
-                while (true) {
-                    logger.info("Currently loaded rows: {}", tableRows.size());
+            while (true) {
+                // Re-fetch rows after each scroll to capture newly loaded rows
+                List<WebElement> rows = productTable.findElements(By.cssSelector("tbody tr"));
+                logger.info("Currently loaded rows: {}", rows.size());
+                getHeaderIndex("productName");
+                for (WebElement row : rows) {
+                    List<WebElement> cells = row.findElements(By.cssSelector("th, td"));
 
-                    for (WebElement row : tableRows) {
-                        //List<WebElement> cells = row.findElements(By.cssSelector("th.slds-cell-edit.cellContainer a"));
+                    if (cells.size() > productNameIndex) {
+                        String cellText = cells.get(productNameIndex).getText().trim();
+                        logger.info("Row product: {}", cellText);
 
-                        if (cells.size() > productNameIndex) {
-                            String cellText = cells.get(productNameIndex).getText().trim();
-                            logger.info("Row product: {}", cellText);
+                        if (cellText.equalsIgnoreCase(productName)) {
+                            WebElement checkbox = cells.get(0).findElement(By.cssSelector("input[type='checkbox']"));
 
-                            if (cellText.equalsIgnoreCase(productName)) {
-                                WebElement checkbox = cells.get(0).findElement(By.cssSelector("input[type='checkbox']"));
+                            ((JavascriptExecutor) driver).executeScript(
+                                    "arguments[0].scrollIntoView({block:'center'});", checkbox);
 
-                                ((JavascriptExecutor) driver).executeScript(
-                                        "arguments[0].scrollIntoView({block:'center'});", checkbox);
-
-                                try {
-                                    checkbox.click();
-                                } catch (ElementClickInterceptedException e) {
-                                    logger.warn("Normal click failed, retrying with JS click...");
-                                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", checkbox);
-                                }
-
-                                logger.info("✅ Product '{}' selected successfully.", productName);
-                                productFound = true;
-                                return;
+                            try {
+                                checkbox.click();
+                            } catch (ElementClickInterceptedException e) {
+                                logger.warn("Normal click failed, retrying with JS click...");
+                                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", checkbox);
                             }
+
+                            logger.info("✅ Product '{}' selected successfully.", productName);
+                            productFound = true;
+                            return;
                         }
                     }
-
-                    // Stop if no new rows are loaded
-                    if (tableRows.size() == previousRowCount) {
-                        logger.warn("Reached end of table, product '{}' not found!", productName);
-                        break;
-                    }
-                    previousRowCount = tableRows.size();
-
-                    // Scroll table down
-                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollTop = arguments[0].scrollHeight;", scrollContainer);
-                    Thread.sleep(1000); // wait for lazy loading
+                }
+//
+//    // Stop if no new rows are loaded
+                if (rows.size() == previousRowCount) {
+                    logger.warn("Reached end of table, product '{}' not found!", productName);
+                    break;
                 }
 
-                if (!productFound) {
-                    throw new NoSuchElementException("❌ Product '" + productName + "' not found in the table!");
-                }
+                previousRowCount = rows.size();
 
-            } catch (Exception e) {
-                logger.error("Failed to select product '{}'", productName, e);
-                throw new RuntimeException("Failed to select product: " + productName, e);
+                // Scroll table gradually for lazy loading
+                ((JavascriptExecutor) driver).executeScript(
+                        "arguments[0].scrollTop += 200;", scrollContainer); // scroll in small increments
+                Thread.sleep(500); // small wait for lazy loading
             }
+
+            if (!productFound) {
+                throw new NoSuchElementException("❌ Product '" + productName + "' not found in the table!");
+            }
+
+        } catch (Exception e) {
+            logger.error("Failed to select product '{}'", productName, e);
+            throw new RuntimeException("Failed to select product: " + productName, e);
         }
+    }*/
+    public void chooseProductFromStandardBook(String productName) {
+        logger.info("🔍 Attempting to select product from Standard Book: {}", productName);
+
+        try {
+            // Wait for product table visibility
+            waitForVisibility(productTable);
+            logger.debug("Product table is visible.");
+
+            // Type product name in search box
+            productSearchBoxEle.clear();
+            productSearchBoxEle.sendKeys(productName);
+            logger.info("Entered product name '{}' into search box.", productName);
+
+            // Wait for listbox to appear
+            WebElement listBoxEle = driver.findElement(By.xpath("//div[@role='listbox']"));
+            waitForVisibility(listBoxEle);
+            logger.debug("Listbox appeared with product suggestions.");
+
+            // Find and click product
+            Optional<WebElement> matchedProduct = productDropdown.stream()
+                    .filter(product -> product.getText().trim().equalsIgnoreCase(productName))
+                    .findFirst();
+
+            if (matchedProduct.isPresent()) {
+                WebElement productEle = matchedProduct.get();
+
+                ((JavascriptExecutor) driver).executeScript(
+                        "arguments[0].scrollIntoView({block:'center'});", productEle);
+
+                productEle.click();
+                logger.info("✅ Successfully selected product: {}", productName);
+            } else {
+                logger.error("❌ Product '{}' not found in dropdown options!", productName);
+                throw new NoSuchElementException("Product not found: " + productName);
+            }
+
+        } catch (Exception e) {
+            logger.error("❌ Failed to select product '{}'", productName, e);
+            throw new RuntimeException("Failed to select product: " + productName, e);
+        }
+    }
+
+
+
+
+
 
 
     public void clickOnCta(String ctaText) {
@@ -280,4 +340,35 @@ SoftAssert softAssert= new SoftAssert();
                     }
                 });
     }
-}
+
+
+    public void getHeaderIndex(String headerText) {
+        List<WebElement> headers = driver.findElements(
+                By.xpath("//a[@role='button' and contains(@class,'toggle slds-th__action slds-text-link--reset')]/span[2]")
+        );
+
+        int productNameHeaderIndex = -1;
+
+        // Find header index
+        for (int i = 0; i < headers.size(); i++) {
+            if (headers.get(i).getText().equalsIgnoreCase(headerText)) {
+                productNameHeaderIndex = i;
+                break;
+            }
+        }
+
+        if (productNameHeaderIndex == -1) {
+            System.out.println("Header not found: " + headerText);
+            return;
+        }
+
+
+
+        // Print the value in the column of interest for each row
+
+            tableRows.stream().map(WebElement::getText).forEach(System.out::println);
+
+        }
+    }
+
+
