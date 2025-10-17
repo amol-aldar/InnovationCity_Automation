@@ -1,6 +1,7 @@
 package org.rakdao.utils;
 
 import org.openqa.selenium.*;
+import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.*;
 import org.rakdao.pageObjects.BasePage;
 import org.slf4j.Logger;
@@ -14,6 +15,9 @@ public class ReusableUtil {
     private WebDriver driver;
     protected WebDriverWait wait;
     private static final Logger logger = LoggerFactory.getLogger(ReusableUtil.class);
+
+    @FindBy(xpath="//lightning-spinner[@alternative-text='Loading']")
+    protected WebElement spinner;
 
     public ReusableUtil(WebDriver driver) {
         this.driver = driver;

@@ -1,7 +1,10 @@
 package org.rakdao;
 
 import org.rakdao.base.BaseClass;
-import org.rakdao.pageObjects.*;
+import org.rakdao.pageObjects.HomePage;
+import org.rakdao.pageObjects.LeadPage;
+import org.rakdao.pageObjects.LoginPage;
+import org.rakdao.pageObjects.OpportunityPage;
 import org.rakdao.utils.ConfigReader;
 import org.rakdao.utils.LoggerUtil;
 import org.rakdao.utils.User;
@@ -11,8 +14,8 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 
-public class StandardIncorporate extends BaseClass {
-    private static final Logger log = LoggerUtil.getLogger(StandardIncorporate.class);
+public class Agent extends BaseClass {
+    private static final Logger log = LoggerUtil.getLogger(Agent.class);
 
     private LoginPage loginPage;
     private HomePage homePage;
@@ -42,7 +45,7 @@ public class StandardIncorporate extends BaseClass {
             leadPage = homePage.goToLeadPage();     // switch control to LeadPage
 
             // 🧾 Lead creation steps
-            leadPage.selectRecordType("Customer");
+            leadPage.selectRecordType("Channel Partner");
             leadPage.clickNext("Next");
             leadPage.enterLeadDetails(
                     user.getFirstName(),
@@ -82,12 +85,10 @@ public class StandardIncorporate extends BaseClass {
             opportunityPage.clickGetInventoryButton();
             opportunityPage.selectSpecificInventory();
             opportunityPage.selectInventoryByRentalAmount("3000");
-            opportunityPage.clickAddSelectedInveButton();
 
             // 🏁 Opportunity closure
             opportunityPage.clickOpportunityStage("Closing");
             opportunityPage.clickOpportunityCompleteButton();
-            opportunityPage.clickLinkBelowHeader("Primary Contact");
             log.info("✅ Product selection & Opportunity completion done.");
 
             Thread.sleep(3000);
