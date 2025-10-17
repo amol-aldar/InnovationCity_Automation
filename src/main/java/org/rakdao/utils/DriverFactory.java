@@ -37,7 +37,9 @@ public class DriverFactory {
                 log.info("Setting up ChromeDriver using WebDriverManager...");
                 WebDriverManager.chromedriver().setup();
                 ChromeOptions chromeOptions = new ChromeOptions();
-                chromeOptions.addArguments("--disable-notifications"); // block notifications
+                chromeOptions.addArguments("--disable-notifications");// block notifications
+                chromeOptions.addArguments("user-data-dir=C:\\SeleniumChromeProfile");
+//                chromeOptions.addArguments("user-data-dir=C:\\Users\\Amol Aldar\\AppData\\Local\\Google\\Chrome\\User Data");
                 driver = new ChromeDriver(chromeOptions);
                 log.info("Chrome browser launched successfully.");
                 break;
