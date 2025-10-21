@@ -203,6 +203,91 @@ public class LeadPage extends ReusableUtil {
         try { Thread.sleep(millis); } catch (InterruptedException ignored) {}
     }
 
+    public void selectRoleDetailsCheckbox(String labelName, boolean shouldSelect){
+            try {
+               String roleTypeXpath= "//span[@class='slds-form-element__label' and normalize-space(text())='" + labelName +
+                        "']/ancestor::lightning-primitive-input-checkbox//input[@type='checkbox']";
+
+                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+                WebElement checkbox = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(roleTypeXpath)));
+
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", checkbox);
+
+                boolean isChecked = checkbox.isSelected();
+                if (shouldSelect && !isChecked) {
+                    checkbox.click();
+                    logger.info("Selected checkbox for label: " + labelName);
+                } else if (!shouldSelect && isChecked) {
+                    checkbox.click();
+                    logger.info("Unselected checkbox for label: " + labelName);
+                } else {
+                    logger.info("Checkbox for label '" + labelName + "' is already in desired state.");
+                }
+            } catch (Exception e) {
+                logger.error("Unable to interact with checkbox for label: " + labelName, e);
+                throw new RuntimeException("Checkbox not found or clickable for: " + labelName, e);
+            }
+        }
+
+    public void handleLeadConversionSection(String sectionName) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+
+        try {
+            logger.info("🔍 Handling Lead Conversion section: {}", sectionName);
+
+            // 1️⃣ Locate section header (Account / Opportunity)
+            String sectionHeaderXpath = "//span[contains(@class,'displayLabel') and normalize-space(text())='" + sectionName + "']";
+            WebElement sectionHeader = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(sectionHeaderXpath)));
+            js.executeScript("arguments[0].scrollIntoView({block:'center'});", sectionHeader);
+            logger.info("✅ Found section header: {}", sectionName);
+
+            // 2️⃣ Expand accordion if collapsed
+            WebElement accordionToggle = sectionHeader.findElement(By.xpath("./ancestor::a[contains(@class,'slds-accordion__summary-action')]"));
+            String expanded = accordionToggle.getAttribute("aria-expanded");
+            if ("false".equalsIgnoreCase(expanded)) {
+                js.executeScript("arguments[0].click();", accordionToggle);
+                logger.info("📂 Expanding accordion for: {}", sectionName);
+                wait.until(ExpectedConditions.attributeToBe(accordionToggle, "aria-expanded", "true"));
+                Thread.sleep(1500); // allow rendering to finish
+            }
+
+            // 3️⃣ Try locating dropdown (with retry)
+            String recordTypeXpath = ".//span[normalize-space(text())='Record Type']/ancestor::div[contains(@class,'uiInputSelect')]//a[contains(@class,'select')]";
+            WebElement recordTypeDropdown = null;
+            try {
+                recordTypeDropdown = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(recordTypeXpath)));
+            } catch (TimeoutException e1) {
+                logger.warn("⚠️ Relative Record Type dropdown not found for '{}'. Retrying with global XPath...", sectionName);
+                String globalXpath = "(//span[normalize-space(text())='Record Type']/ancestor::div[contains(@class,'uiInputSelect')]//a[contains(@class,'select')])[2]";
+                recordTypeDropdown = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(globalXpath)));
+            }
+
+            js.executeScript("arguments[0].scrollIntoView({block:'center'});", recordTypeDropdown);
+            js.executeScript("arguments[0].click();", recordTypeDropdown);
+            logger.info("📋 Opened Record Type dropdown for {}", sectionName);
+
+            // 4️⃣ Choose appropriate value
+            String recordTypeValue = sectionName.equalsIgnoreCase("Account") ? "Channel Partner" : "Agent Onboarding";
+
+            // 5️⃣ Wait for and select dropdown value
+            String optionXpath = "//div[@role='listbox']//a[@role='option' and normalize-space(text())='" + recordTypeValue + "']";
+            WebElement option = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(optionXpath)));
+            js.executeScript("arguments[0].scrollIntoView({block:'center'});", option);
+            js.executeScript("arguments[0].click();", option);
+            logger.info("✅ Selected '{}' for {}", recordTypeValue, sectionName);
+
+        } catch (Exception e) {
+            logger.error("❌ Failed to handle section '{}': {}", sectionName, e.getMessage());
+            throw new RuntimeException("Timeout or failure handling section: " + sectionName, e);
+        }
+    }
+
+
+
+
+
+
 
     // -------------------- CTA / Conversion Methods --------------------
     public void clickRibbonCta(String ctaText) {

@@ -87,7 +87,7 @@ public class StandardIncorporate extends BaseClass {
             // 🏁 Opportunity closure
             opportunityPage.clickOpportunityStage("Closing");
             opportunityPage.clickOpportunityCompleteButton();
-            opportunityPage.clickLinkBelowHeader("Primary Contact");
+            opportunityPage.goToContactOrAccount("Primary Contact");
             log.info("✅ Product selection & Opportunity completion done.");
 
             Thread.sleep(3000);

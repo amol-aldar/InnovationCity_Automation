@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ReusableUtil {
 
-    private WebDriver driver;
+    protected WebDriver driver;
     protected WebDriverWait wait;
     private static final Logger logger = LoggerFactory.getLogger(ReusableUtil.class);
 
