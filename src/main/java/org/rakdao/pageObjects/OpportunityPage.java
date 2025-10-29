@@ -497,11 +497,12 @@ public class OpportunityPage extends ReusableUtil {
         logger.info("[clickOpportunityStage] Clicking stage: {}", stageName);
         driver.navigate().refresh();
         By entityTypeEle = By.xpath("//p[text()='Entity Type']");
+        waitForVisibility(driver.findElement(entityTypeEle));
         scrollToElement(driver.findElement(entityTypeEle));
 
         try {
             logger.debug("[clickOpportunityStage] Waiting for spinner...");
-            waitForInvisibility(spinner);
+//            waitForInvisibility(spinner);
             logger.debug("[clickOpportunityStage] Spinner gone, path visible.");
             waitForVisibility(opportunityNavStageBarEle);
 

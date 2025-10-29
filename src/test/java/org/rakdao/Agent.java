@@ -1,5 +1,6 @@
 package org.rakdao;
 
+import io.github.bonigarcia.wdm.WebDriverManager;
 import org.rakdao.base.BaseClass;
 import org.rakdao.pageObjects.*;
 import org.rakdao.utils.ConfigReader;
@@ -83,9 +84,15 @@ public class Agent extends BaseClass {
             softAssert.assertEquals(successMsgText,"Stage changed successfully.");
             log.info("✅ Opportunity closing successfully ");
             ContactPage contactPage=opportunityPage.goToContactOrAccount("Primary Contact");
-            contactPage.goToPortal();
-            contactPage.clickStartNowButton();
-
+            PortalApplicationPage portalApplicationPage=contactPage.goToPortal();
+            portalApplicationPage.clickStartNowButton();
+            portalApplicationPage.fillCompanyDetails("Afghanistan","Company Limited by Shares");
+            portalApplicationPage.fillBankDetails();
+            portalApplicationPage.clickSaveInfoButton();
+            portalApplicationPage.clickContinueButton();
+            portalApplicationPage.enterNumberOfShares();
+            portalApplicationPage.enterShareValue();
+            portalApplicationPage.clickAddShareholder("Individual Shareholder");
             softAssert.assertAll();
 
 
@@ -94,4 +101,6 @@ public class Agent extends BaseClass {
             throw e;
         }
     }
+
+
 }

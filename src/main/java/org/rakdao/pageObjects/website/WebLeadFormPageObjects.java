@@ -49,7 +49,7 @@ public class WebLeadFormPageObjects extends ReusableUtil {
     @FindBy(css = ".thankyou-content a")
     private WebElement backToHomeLink;
 
-    @FindBy(css = "div.header-bar a.contact-button")
+    @FindBy(xpath = "//a[normalize-space(text())='GET STARTED']")
     private WebElement getStartedButtonEle;
 
     // ====== Constructor ======
@@ -109,9 +109,8 @@ public class WebLeadFormPageObjects extends ReusableUtil {
             logger.info("🚀 Running LaunchWith Landing Page submission (ONCE)");
             submitLeadWithLandingPage(firstName, lastName);
             return true;
-        }
+        }else{
 
-        if (currentUrl.contains("utm")) {
             logger.info("📌 UTM URL detected → Clicking Get Started button first");
             scrollAndClick(getStartedButtonEle);
         }

@@ -25,13 +25,11 @@ public class ContactPage extends ReusableUtil {
     @FindBy(xpath = "//button[normalize-space(text())='Log in to Experience as User']")
     private WebElement loginButton;
 
-    //Portal Elements
-    @FindBy(xpath = "//button[text()='START NOW']")
-    private WebElement startNowButton;
+
 
 
     // 🔹 Action Methods
-    public void goToPortal() {
+    public PortalApplicationPage goToPortal() {
         logger.info("🔍 Attempting to click 'Log in to Experience as User' button on ContactPage...");
 
         try {
@@ -55,13 +53,9 @@ public class ContactPage extends ReusableUtil {
             logger.error("❌ Unexpected error while clicking portal login: {}", e.getMessage());
             throw new RuntimeException("Error navigating to user portal", e);
         }
+        return new PortalApplicationPage(driver);
     }
 
-    public void clickStartNowButton(){
-        waitForVisibility(startNowButton);
-        waitForClickability(startNowButton);
-        scrollToElement(startNowButton);
-        startNowButton.click();
-    }
+
 
 }
