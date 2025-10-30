@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
 
@@ -124,6 +126,58 @@ public class PortalApplicationPage extends ReusableUtil {
     @FindBy(xpath = "//input[contains(@id,'Passport_Number')]")
     private WebElement shareholderPassportNumInput;
 
+    By proceedButtonEle= By.xpath("//footer[contains(@class,'dao-modal-footer')]//button[normalize-space()='PROCEED']");
+
+    //Residential Address
+    @FindBy(xpath = "//input[contains(@id,'City_Town_Village')]")
+    private WebElement cityTownInput;
+
+    @FindBy(xpath = "//input[contains(@id,'Area')]")
+    private WebElement areaInput;
+
+    @FindBy(xpath = "//input[contains(@id,'Street')]")
+    private WebElement streetNameInput;
+
+    @FindBy(xpath = "//input[contains(@id,'Building')]")
+    private WebElement buildingNameInput;
+
+    @FindBy(xpath = "//input[contains(@id,'Flat')]")
+    private WebElement flatNumberInput;
+
+    @FindBy(xpath = "//input[contains(@id,'Postal_Code')]")
+    private WebElement postalCodeInput;
+
+    By yearAddBtnEle= By.xpath("//button[@value='add']");
+
+    @FindBy(xpath = "//label[text()='Same as residential address']")
+    private WebElement sameResiAddressCheckboxEle;
+
+    //Shareholder Roles
+
+    @FindBy(xpath = "//label[text()='Is UBO?']")
+    private WebElement isUBOCheckBoxEle;
+
+    @FindBy(xpath = "//label[text()='Owns or controls 25% or more of the shares or voting rights.']")
+    private WebElement ownVotingRightCheckBoxEle;
+
+    @FindBy(xpath = "//label[text()='Is this shareholder a Manager for this company?']")
+    private WebElement isManagerCheckBoxEle;
+
+    @FindBy(xpath = "Is this shareholder a Director for this company?")
+    private WebElement isDirectorCheckBoxEle;
+
+    @FindBy(xpath = "Is this shareholder an Authorized Signatory?")
+    private WebElement isAuthorizedSignatoryCheckBoxEle;
+
+    @FindBy(xpath = "//input[starts-with(@id,'Number_of_Shares')]")
+    private WebElement ownedSharesInput;
+
+    @FindBy(xpath = "//footer[contains(@class,'dao-modal-footer')]//button[normalize-space()='SUBMIT']")
+    private WebElement submitButtonEle;
+
+
+
+
 
 
 
@@ -207,48 +261,8 @@ public class PortalApplicationPage extends ReusableUtil {
     }
 
     public void enterTelephoneNumber() {
-        try {
-            // ✅ Generate random number
-            String mobileString = "05" + (10000000 + random.nextInt(89999999));
-            logger.info("📱 Preparing to enter Telephone Number: {}", mobileString);
-
-            // 🔢 Convert to numeric (int)
-            // Removing leading zero for conversion
-            long mobileInt = Long.parseLong(mobileString);  // using long to avoid overflow
-
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-
-            // ✅ Ensure correct element reference
-            wait.until(ExpectedConditions.visibilityOf(mobileInput));
-            wait.until(ExpectedConditions.elementToBeClickable(mobileInput));
-            scrollToElement(mobileInput);
-
-            // ✅ Bring focus to input
-            ((JavascriptExecutor) driver).executeScript("arguments[0].focus();", mobileInput);
-            mobileInput.clear();
-
-            // ✅ Offset click (avoid country flag overlay)
-            Actions actions = new Actions(driver);
-            actions.moveToElement(mobileInput, 120, 5).click().perform();
-
-            // ✅ Send as numeric value — converting back to string for sendKeys
-            mobileInput.sendKeys(String.valueOf(mobileInt));
-            logger.info("✅ Successfully entered telephone number: {}", mobileInt);
-
-        } catch (ElementNotInteractableException e) {
-            logger.warn("⚠️ Telephone field not interactable, retrying with JS...");
-            String mobileString = "05" + (10000000 + random.nextInt(89999999));
-            long mobileInt = Long.parseLong(mobileString);
-            ((JavascriptExecutor) driver).executeScript("arguments[0].value = arguments[1];", mobileInput, String.valueOf(mobileInt));
-            logger.info("✅ Entered telephone number via JS fallback: {}", mobileInt);
-
-        } catch (Exception e) {
-            logger.error("❌ Failed to enter telephone number: {}", e.getMessage());
-            throw new RuntimeException("Telephone number entry failed", e);
-        }
+        enterPhoneNumber(mobileInput, "Telephone Number");
     }
-
-
 
     public void selectLicenseIssuedCountry(String countryName) {
         try {
@@ -494,7 +508,7 @@ public class PortalApplicationPage extends ReusableUtil {
     }
 
     public void selectNationality(String country){
-        clickShareholderField("Birth Country");
+        clickShareholderField("Nationality");
         By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + country + "']");
         WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
 
@@ -504,7 +518,7 @@ public class PortalApplicationPage extends ReusableUtil {
     }
 
     public void selectPassportIssueCountry(String country){
-        clickShareholderField("Birth Country");
+        clickShareholderField("Passport Issue Country");
         By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + country + "']");
         WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
 
@@ -538,11 +552,6 @@ public class PortalApplicationPage extends ReusableUtil {
     }
 
 
-    public void selectDOB() {
-        clickShareholderField("Date of Birth");
-
-    }
-
 
     public void clickShareholderField(String fieldName){
         // XPath to get the button above the label
@@ -552,6 +561,562 @@ public class PortalApplicationPage extends ReusableUtil {
 
         button.click();
     }
+
+    public void enterDateOfBirth() {
+        String dob = getRandomDate("DOB");
+        WebElement dobField = driver.findElement(By.xpath("//input[contains(@id,'Date_of_Birth')]"));
+        selectDate(dobField, dob, "Date of Birth");
+    }
+
+    public void enterPassportIssueDate() {
+        String issueDate = getRandomDate("ISSUE");
+        WebElement issueDateField = driver.findElement(By.xpath("//input[contains(@id,'Passport_Issue_Date')]"));
+        selectDate(issueDateField, issueDate, "Passport Issue Date");
+    }
+
+    public void enterPassportExpiryDate() {
+        String expiryDate = getRandomDate("EXPIRY");
+        WebElement expiryDateField = driver.findElement(By.xpath("//input[contains(@id,'Passport_Expiry_Date')]"));
+        selectDate(expiryDateField, expiryDate, "Passport Expiry Date");
+    }
+
+    public void clickProceedButton() {
+        WebElement proceedBtn=driver.findElement(proceedButtonEle);
+        scrollToElement(proceedBtn);
+        waitForClickability(proceedBtn);
+        proceedBtn.click();
+
+    }
+
+    //Select Visa
+
+    public void selectVisaType(String visaType){
+            clickShareholderField("Current UAE Visa Status");
+            By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + visaType + "']");
+            WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
+            scrollToElement(option);
+            option.click();
+
+    }
+
+    // 🔹 Shareholder Contact Details
+    public void enterShareholderPrimaryEmail(String fieldName) {
+        String xpath = String.format("//label[text()='%s']/preceding-sibling::input", fieldName);
+
+        WebElement fieldInput = driver.findElement(By.xpath(xpath));
+        // Generate random email address
+        String[] domains = {"gmail.com", "yahoo.com", "outlook.com", "example.com"};
+        String randomName = "user" + System.currentTimeMillis(); // unique per run
+        String randomDomain = domains[new Random().nextInt(domains.length)];
+        String randomEmail = randomName + "@" + randomDomain;
+
+        typeAndLog(fieldInput, randomEmail, "Shareholder Primary Email");
+    }
+
+    public void enterShareholderPrimaryMobileNum(String fieldName) {
+        String xpath = String.format("//label[normalize-space(text())='%s']/preceding::input[@type='tel'][1]", fieldName);
+        WebElement phoneField = new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
+
+        enterPhoneNumber(phoneField, "Shareholder Primary Mobile Number");
+    }
+
+    private void enterPhoneNumber(WebElement phoneInput, String fieldName) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        Random random = new Random();
+
+        try {
+            // 📱 Generate random UAE-style number: 05XXXXXXXX
+            String randomPhone = "05" + (10000000 + random.nextInt(89999999));
+            logger.info("📞 Generated random number for '{}': {}", fieldName, randomPhone);
+
+            // Wait for element visibility and interactivity
+            wait.until(ExpectedConditions.visibilityOf(phoneInput));
+            wait.until(ExpectedConditions.elementToBeClickable(phoneInput));
+            scrollToElement(phoneInput);
+
+            // === Attempt 1: Normal sendKeys ===
+            try {
+                ((JavascriptExecutor) driver).executeScript("arguments[0].focus();", phoneInput);
+                phoneInput.click();
+                phoneInput.clear();
+
+                // Offset click to avoid country flag overlays (if intl-tel-input used)
+                new Actions(driver).moveToElement(phoneInput, 120, 5).click().perform();
+
+                phoneInput.sendKeys(randomPhone);
+                phoneInput.sendKeys(Keys.TAB);
+                Thread.sleep(700);
+
+                String actualValue = phoneInput.getAttribute("value");
+                if (actualValue != null && actualValue.contains("05")) {
+                    logger.info("✅ {} entered successfully via sendKeys: {}", fieldName, actualValue);
+                    return;
+                } else {
+                    logger.warn("⚠️ sendKeys executed but value not reflected. Trying JS fallback...");
+                }
+            } catch (Exception e1) {
+                logger.warn("⚠️ sendKeys failed for '{}': {}. Trying JS fallback...", fieldName, e1.getMessage());
+            }
+
+            // === Attempt 2: JavaScript fallback ===
+            try {
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                String script =
+                        "arguments[0].focus();" +
+                                "arguments[0].value = arguments[1];" +
+                                "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));" +
+                                "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));" +
+                                "arguments[0].blur();";
+                js.executeScript(script, phoneInput, randomPhone);
+
+                Thread.sleep(700);
+                String actualValue = phoneInput.getAttribute("value");
+                if (actualValue != null && actualValue.contains("05")) {
+                    logger.info("✅ {} entered successfully via JavaScript: {}", fieldName, actualValue);
+                    return;
+                } else {
+                    logger.warn("⚠️ JS executed but value not reflected. Trying keyboard simulation...");
+                }
+            } catch (Exception e2) {
+                logger.warn("⚠️ JS fallback failed for '{}': {}. Trying keyboard simulation...", fieldName, e2.getMessage());
+            }
+
+            // === Attempt 3: Keyboard simulation (char-by-char typing) ===
+            try {
+                phoneInput.click();
+                for (char c : randomPhone.toCharArray()) {
+                    phoneInput.sendKeys(Character.toString(c));
+                    Thread.sleep(50);
+                }
+                phoneInput.sendKeys(Keys.TAB);
+                Thread.sleep(700);
+
+                String actualValue = phoneInput.getAttribute("value");
+                if (actualValue != null && actualValue.contains("05")) {
+                    logger.info("✅ {} entered successfully via keyboard simulation: {}", fieldName, actualValue);
+                    return;
+                }
+            } catch (Exception e3) {
+                logger.error("⚠️ Keyboard simulation failed for '{}': {}", fieldName, e3.getMessage());
+            }
+
+            // === All Fallbacks Failed ===
+            logger.error("❌ All methods failed to enter {}.", fieldName);
+            throw new RuntimeException("Failed to enter phone number for: " + fieldName);
+
+        } catch (Exception e) {
+            logger.error("❌ Exception while entering {}: {}", fieldName, e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+
+    //Residential Address proof
+
+    public void selectResidentialCountry(String country){
+        clickShareholderField("Select Country");
+        By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + country + "']");
+        WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
+
+        scrollToElement(option);
+        option.click();
+    }
+
+    public void selectResidentialProvince(String stateProvice){
+        clickShareholderField("Select State/Province");
+        By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + stateProvice + "']");
+        WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
+
+        scrollToElement(option);
+        option.click();
+
+    }
+
+    public void enterResidentialCityVillage() {
+        String[] cities = {"Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Fujairah", "Al Ain", "Ras Al Khaimah", "Umm Al Quwain"};
+        String randomCity = cities[new Random().nextInt(cities.length)];
+
+        logger.info("🏙️ Attempting to enter City/Town/Village: {}", randomCity);
+        try {
+            typeAndLog(cityTownInput, randomCity, "City/Town/Village");
+        } catch (Exception e) {
+            logger.warn("⚠️ sendKeys failed for City. Trying JS fallback... {}", e.getMessage());
+            setValueUsingJS(cityTownInput, randomCity, "City/Town/Village");
+        }
+    }
+
+    public void enterResidentialAreaName() {
+        String[] areas = {"Jumeirah", "Deira", "Karama", "Mirdif", "Business Bay", "Al Nahda", "Marina", "Downtown"};
+        String randomArea = areas[new Random().nextInt(areas.length)];
+
+        logger.info("🏘️ Attempting to enter Area: {}", randomArea);
+        try {
+            typeAndLog(areaInput, randomArea, "Area");
+        } catch (Exception e) {
+            logger.warn("⚠️ sendKeys failed for Area. Trying JS fallback... {}", e.getMessage());
+            setValueUsingJS(areaInput, randomArea, "Area");
+        }
+    }
+
+    public void enterResidentialStreetName() {
+        String[] streetPrefixes = {"Main", "Palm", "Sunset", "Ocean", "King", "Creek", "Lake", "Desert"};
+        String randomStreet = streetPrefixes[new Random().nextInt(streetPrefixes.length)] + " Street";
+
+        logger.info("🚗 Attempting to enter Street Name: {}", randomStreet);
+        try {
+            typeAndLog(streetNameInput, randomStreet, "Street Name");
+        } catch (Exception e) {
+            logger.warn("⚠️ sendKeys failed for Street. Trying JS fallback... {}", e.getMessage());
+            setValueUsingJS(streetNameInput, randomStreet, "Street Name");
+        }
+    }
+
+    public void enterResidentialBuildingName() {
+        String[] buildingNames = {"Skyline Tower", "Palm Residence", "Bay View", "Ocean Heights", "Golden Sands", "Rosewood", "Silver Tower"};
+        String randomBuilding = buildingNames[new Random().nextInt(buildingNames.length)];
+
+        logger.info("🏢 Attempting to enter Building Name: {}", randomBuilding);
+        try {
+            typeAndLog(buildingNameInput, randomBuilding, "Building Name");
+        } catch (Exception e) {
+            logger.warn("⚠️ sendKeys failed for Building. Trying JS fallback... {}", e.getMessage());
+            setValueUsingJS(buildingNameInput, randomBuilding, "Building Name");
+        }
+    }
+
+    public void enterResidentialFlatNumber() {
+        int randomFlat = 100 + new Random().nextInt(900); // e.g., 101–999
+        String flatNumber = "Flat " + randomFlat;
+
+        logger.info("🏠 Attempting to enter Flat Number: {}", flatNumber);
+        try {
+            typeAndLog(flatNumberInput, flatNumber, "Flat Number");
+        } catch (Exception e) {
+            logger.warn("⚠️ sendKeys failed for Flat Number. Trying JS fallback... {}", e.getMessage());
+            setValueUsingJS(flatNumberInput, flatNumber, "Flat Number");
+        }
+    }
+
+    public void enterResidentialPostalCode() {
+
+        String postal = String.valueOf(10000 + new Random().nextInt(89999)); // 10000–99999
+
+        logger.info("📮 Attempting to enter Postal Code: {}", postal);
+        try {
+            typeAndLog(postalCodeInput, postal, "Postal Code");
+        } catch (Exception e) {
+            logger.warn("⚠️ sendKeys failed for Postal Code. Trying JS fallback... {}", e.getMessage());
+            setValueUsingJS(postalCodeInput, postal, "Postal Code");
+        }
+    }
+
+    public void selectYearsLiving() {
+        logger.info("⏱️ Selecting years of residence (5 clicks on + button)");
+
+        try {
+            WebElement addButton = driver.findElement(By.xpath("(//button[@value='add'])[1]"));
+
+            scrollToElement(addButton);
+            waitForClickability(addButton);
+
+            for (int i = 0; i < 5; i++) {
+                try {
+                    addButton.click();
+                    logger.info("🟢 Clicked + button (iteration {})", i + 1);
+                } catch (ElementClickInterceptedException e) {
+                    logger.warn("⚠️ Click intercepted on attempt {} — retrying with JS click...", i + 1);
+                    jsClick(addButton);
+                } catch (Exception e) {
+                    logger.error("❌ Unexpected error clicking + button at iteration {}: {}", i + 1, e.getMessage());
+                }
+                Thread.sleep(300); // small delay between clicks
+            }
+
+            logger.info("✅ Successfully selected 5 years of residence.");
+        } catch (Exception e) {
+            logger.error("❌ Failed while selecting years of residence: {}", e.getMessage());
+        }
+    }
+
+    public void jsClick(WebElement element) {
+        try {
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            js.executeScript("arguments[0].click();", element);
+            logger.info("🟢 JS click performed successfully on element: {}", element);
+        } catch (Exception e) {
+            logger.error("❌ JS click failed: {}", e.getMessage());
+        }
+    }
+
+    public void selectResidentialAddressCheckbox() {
+        logger.info("🏡 Selecting 'Same as Residential Address' checkbox...");
+
+        try {
+            scrollToElement(sameResiAddressCheckboxEle);
+            waitForClickability(sameResiAddressCheckboxEle);
+
+            try {
+                sameResiAddressCheckboxEle.click();
+                logger.info("✅ Checkbox clicked successfully using standard click.");
+            } catch (ElementClickInterceptedException e) {
+                logger.warn("⚠️ Click intercepted, retrying with JavaScript click...");
+                jsClick(sameResiAddressCheckboxEle);
+                logger.info("✅ Checkbox clicked successfully using JavaScript fallback.");
+            }
+
+        } catch (Exception e) {
+            logger.error("❌ Failed to click 'Same as Residential Address' checkbox: {}", e.getMessage());
+        }
+    }
+
+
+
+     // Individual methods for each checkbox
+
+    public void selectUBOCheckbox() {
+        clickCheckboxWithFallback(isUBOCheckBoxEle, "Is UBO?");
+    }
+
+    public void selectVotingRightCheckbox() {
+        clickCheckboxWithFallback(ownVotingRightCheckBoxEle, "Owns or controls 25% or more of the shares or voting rights");
+    }
+
+    public void selectManagerCheckbox() {
+        clickCheckboxWithFallback(isManagerCheckBoxEle, "Is this shareholder a Manager for this company?");
+    }
+
+    public void selectDirectorCheckbox() {
+        clickCheckboxWithFallback(isDirectorCheckBoxEle, "Is this shareholder a Director for this company?");
+    }
+
+    public void selectAuthorizedSignatoryCheckbox() {
+        clickCheckboxWithFallback(isAuthorizedSignatoryCheckBoxEle, "Is this shareholder an Authorized Signatory?");
+    }
+
+    public void selectNatureOfOwnership(String ownershipNature) {
+        //As a Nominee
+        // Control through other means e.g. holds decision or veto rights and /or controls the rights of others
+        logger.info("🏢 Selecting Nature of Ownership: {}", ownershipNature);
+        try {
+            clickShareholderField("Select Nature of Ownership");
+
+            By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + ownershipNature + "']");
+            WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
+
+            scrollToElement(option);
+            waitForClickability(option);
+            option.click();
+
+            logger.info("✅ Successfully selected Nature of Ownership: {}", ownershipNature);
+
+        } catch (Exception e) {
+            logger.error("⚠️ Click failed for Nature of Ownership: {} | Trying JavaScript fallback...", ownershipNature);
+            try {
+                WebElement fallbackOption = driver.findElement(By.xpath("//li[normalize-space(text())='" + ownershipNature + "']"));
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", fallbackOption);
+                logger.info("✅ Nature of Ownership selected via JavaScript fallback: {}", ownershipNature);
+            } catch (Exception jsEx) {
+                logger.error("❌ Failed to select Nature of Ownership '{}': {}", ownershipNature, jsEx.getMessage());
+            }
+        }
+    }
+
+    public void enterOwnedShares() {
+        int shares = 1000 + new Random().nextInt(9000); // random between 1000–9999
+        String shareText = String.valueOf(shares);
+        logger.info("💰 Entering Owned Shares: {}", shareText);
+        try {
+            typeAndLog(ownedSharesInput, shareText, "Owned Shares");
+            logger.info("✅ Owned Shares entered successfully: {}", shareText);
+        } catch (Exception e) {
+            logger.error("⚠️ Failed to type Owned Shares normally, trying JS fallback: {}", e.getMessage());
+            try {
+                ((JavascriptExecutor) driver).executeScript("arguments[0].value = arguments[1];", ownedSharesInput, shareText);
+                logger.info("✅ Owned Shares set successfully using JS fallback: {}", shareText);
+            } catch (Exception jsEx) {
+                logger.error("❌ JS fallback also failed for Owned Shares: {}", jsEx.getMessage());
+            }
+        }
+    }
+
+    public void clickSubmitButton() {
+        logger.info("🖱️ Attempting to click Submit button...");
+        try {
+            scrollToElement(submitButtonEle);
+            waitForClickability(submitButtonEle);
+            submitButtonEle.click();
+            logger.info("✅ Submit button clicked successfully.");
+        } catch (Exception e) {
+            logger.error("⚠️ Normal click failed for Submit button, attempting JS fallback: {}", e.getMessage());
+            try {
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", submitButtonEle);
+                logger.info("✅ Submit button clicked successfully using JS fallback.");
+            } catch (Exception jsEx) {
+                logger.error("❌ Failed to click Submit button even with JS fallback: {}", jsEx.getMessage());
+            }
+        }
+    }
+
+
+
+    private void clickCheckboxWithFallback(WebElement element, String checkboxName) {
+        logger.info("☑️ Attempting to select '{}' checkbox...", checkboxName);
+        try {
+            scrollToElement(element);
+            waitForClickability(element);
+
+            try {
+                element.click();
+                logger.info("✅ '{}' checkbox selected successfully (normal click).", checkboxName);
+            } catch (ElementClickInterceptedException e) {
+                logger.warn("⚠️ '{}' checkbox click intercepted, retrying with JavaScript...", checkboxName);
+                jsClick(element);
+                logger.info("✅ '{}' checkbox selected successfully (JS fallback).", checkboxName);
+            }
+
+        } catch (Exception e) {
+            logger.error("❌ Failed to select '{}' checkbox: {}", checkboxName, e.getMessage());
+        }
+    }
+
+
+
+
+    // JS fallback for setting input field value when sendKeys fails.
+
+    private void setValueUsingJS(WebElement element, String value, String fieldName) {
+        Logger logger = LoggerFactory.getLogger(getClass());
+        try {
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            js.executeScript("arguments[0].value=arguments[1]; arguments[0].dispatchEvent(new Event('change'));", element, value);
+            logger.info("✅ Successfully set {} using JavaScript fallback.", fieldName);
+        } catch (Exception e) {
+            logger.error("❌ JS fallback also failed for {}: {}", fieldName, e.getMessage());
+            throw new RuntimeException("Failed to enter value for " + fieldName, e);
+        }
+    }
+
+
+
+
+
+
+    // Generates random date strings (yyyy-MM-dd) depending on type.
+
+    private String getRandomDate(String type) {
+        Random random = new Random();
+        LocalDate randomDate;
+
+        switch (type.toUpperCase()) {
+            case "DOB":
+                // Between 1970 and 2007
+                int startYearDOB = 1970;
+                int endYearDOB = 2007;
+                randomDate = LocalDate.of(startYearDOB + random.nextInt(endYearDOB - startYearDOB + 1),
+                        1 + random.nextInt(12),
+                        1 + random.nextInt(28));
+                break;
+
+            case "ISSUE":
+                // Within last 10 years
+                randomDate = LocalDate.now().minusDays(random.nextInt(365 * 10));
+                break;
+
+            case "EXPIRY":
+                // 5–10 years in the future
+                randomDate = LocalDate.now().plusDays(365 * (5 + random.nextInt(5)))
+                        .withDayOfMonth(1 + random.nextInt(28));
+                break;
+
+            default:
+                randomDate = LocalDate.now();
+                break;
+        }
+
+        return randomDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
+
+
+    public void selectDate(WebElement dateField, String dateValue, String fieldName) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        logger.info("📅 Attempting to enter {}: {}", fieldName, dateValue);
+
+        try {
+            wait.until(ExpectedConditions.visibilityOf(dateField));
+
+            // ✅ OPTION 1: Direct sendKeys
+            try {
+//                dateField.click();
+//                dateField.clear();
+                dateField.sendKeys(dateValue);
+                dateField.sendKeys(Keys.TAB);
+
+                if (dateField.getAttribute("value").equals(dateValue)) {
+                    logger.info("✅ Successfully entered {} using sendKeys.", fieldName);
+                    return;
+                } else {
+                    logger.warn("⚠️ sendKeys executed but value not reflected in {}. Trying JS fallback...", fieldName);
+                }
+            } catch (Exception e1) {
+                logger.warn("⚠️ sendKeys failed for {}: {}. Trying JS fallback...", fieldName, e1.getMessage());
+            }
+
+            // ✅ OPTION 2: JavaScript Fallback
+            try {
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                js.executeScript("arguments[0].value='" + dateValue + "';", dateField);
+                js.executeScript("arguments[0].dispatchEvent(new Event('change'));", dateField);
+
+                if (dateField.getAttribute("value").equals(dateValue)) {
+                    logger.info("✅ Successfully set {} using JavaScript.", fieldName);
+                    return;
+                } else {
+                    logger.warn("⚠️ JS executed but value not reflected in {}. Trying keyboard navigation...", fieldName);
+                }
+            } catch (Exception e2) {
+                logger.warn("⚠️ JavaScript fallback failed for {}: {}. Trying keyboard navigation...", fieldName, e2.getMessage());
+            }
+
+            // ✅ OPTION 3: Keyboard Navigation
+            try {
+                dateField.click();
+                dateField.sendKeys(Keys.ARROW_DOWN);
+                dateField.sendKeys(Keys.ENTER);
+
+                if (!dateField.getAttribute("value").isEmpty()) {
+                    logger.info("✅ Successfully selected {} using keyboard navigation.", fieldName);
+                    return;
+                } else {
+                    logger.warn("⚠️ Keyboard input didn’t change {}. Trying calendar click...", fieldName);
+                }
+            } catch (Exception e3) {
+                logger.warn("⚠️ Keyboard fallback failed for {}: {}. Trying calendar click...", fieldName, e3.getMessage());
+            }
+
+            // ✅ OPTION 4: Direct Calendar Click
+            try {
+                String day = dateValue.split("-")[2];
+                String xpath = String.format("//td[contains(@data-value,'%s') or text()='%s']", dateValue, Integer.parseInt(day));
+
+                WebElement dateElement = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath)));
+                dateElement.click();
+                logger.info("✅ Successfully clicked date '{}' for {}.", dateValue, fieldName);
+                return;
+            } catch (Exception e4) {
+                logger.error("❌ All fallback methods failed for {}: {}", fieldName, e4.getMessage());
+                throw new RuntimeException("Failed to set " + fieldName + " for value: " + dateValue, e4);
+            }
+
+        } catch (Exception e) {
+            logger.error("❌ Exception while handling {}: {}", fieldName, e.getMessage());
+            throw new RuntimeException(fieldName + " entry failed for value: " + dateValue, e);
+        }
+    }
+
 
 
 }

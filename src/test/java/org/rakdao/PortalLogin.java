@@ -6,6 +6,7 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.rakdao.pageObjects.DocumentUploadPage;
 import org.rakdao.pageObjects.PortalApplicationPage;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -29,14 +30,14 @@ public class PortalLogin {
 
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--disable-notifications");
-        options.addArguments("user-data-dir=C:\\PortalLoginProfile");
+//        options.addArguments("user-data-dir=C:\\PortalLoginProfile");
         driver = new ChromeDriver(options);
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(30));
         driver.manage().window().maximize();
         driver.get(PORTAL_URL);
 
         // 🔍 Zoom out while maximized
-        zoomOutPage(1);
+        zoomOutPage(4);
     }
 
     public void zoomOutPage(int times) {
@@ -68,23 +69,54 @@ public class PortalLogin {
 
         // ✅ Page Object actions
         PortalApplicationPage portalApplicationPage = new PortalApplicationPage(driver);
-//        portalApplicationPage.clickStartNowButton();
-//        portalApplicationPage.fillCompanyDetails("India", "Company Limited by Shares");
-//        portalApplicationPage.fillBankDetails();
-//        portalApplicationPage.clickSaveInfoButton();
-//        portalApplicationPage.clickContinueButton();
+        portalApplicationPage.clickStartNowButton();
+        /*portalApplicationPage.fillCompanyDetails("India", "Company Limited by Shares");
+        portalApplicationPage.fillBankDetails();
+        portalApplicationPage.clickSaveInfoButton();
+        portalApplicationPage.clickContinueButton();
         portalApplicationPage.enterNumberOfShares();
         portalApplicationPage.enterShareValue();
-        portalApplicationPage.clickAddShareholder("Individual Shareholder");
+        portalApplicationPage.clickAddShareholder("Individual");
         portalApplicationPage.enterShareholderFname();
         portalApplicationPage.enterShareholderLname();
-        portalApplicationPage.enterShareholderPlaceOfBirth();
-        portalApplicationPage.enterShareholderPassportNum();
         portalApplicationPage.selectGender("Male");
         portalApplicationPage.selectBirthCountry("India");
+        portalApplicationPage.enterShareholderPlaceOfBirth();
         portalApplicationPage.selectNationality("India");
+        portalApplicationPage.enterShareholderPassportNum();
+        portalApplicationPage.enterDateOfBirth();
+        portalApplicationPage.enterPassportIssueDate();
+        portalApplicationPage.enterPassportExpiryDate();
         portalApplicationPage.selectPassportIssueCountry("India");
-        portalApplicationPage.selectDOB();
+        portalApplicationPage.clickProceedButton();
+        portalApplicationPage.selectVisaType("No UAE Visa");
+        portalApplicationPage.clickProceedButton();
+        portalApplicationPage.enterShareholderPrimaryEmail("Primary Email");
+        portalApplicationPage.enterShareholderPrimaryMobileNum("Primary Phone");
+        portalApplicationPage.clickProceedButton();
+        portalApplicationPage.selectResidentialCountry("India");
+        portalApplicationPage.selectResidentialProvince("Maharashtra");
+        portalApplicationPage.enterResidentialBuildingName();
+        portalApplicationPage.enterResidentialFlatNumber();
+        portalApplicationPage.enterResidentialStreetName();
+        portalApplicationPage.enterResidentialAreaName();
+        portalApplicationPage.enterResidentialPostalCode();
+        portalApplicationPage.enterResidentialCityVillage();
+        portalApplicationPage.selectYearsLiving();
+        portalApplicationPage.selectResidentialAddressCheckbox();
+        portalApplicationPage.clickProceedButton();
+        portalApplicationPage.selectUBOCheckbox();
+        portalApplicationPage.selectVotingRightCheckbox();
+        portalApplicationPage.selectManagerCheckbox();
+        portalApplicationPage.selectDirectorCheckbox();
+        portalApplicationPage.selectAuthorizedSignatoryCheckbox();
+        portalApplicationPage.selectNatureOfOwnership("As a Nominee");
+        portalApplicationPage.clickSubmitButton();
+        portalApplicationPage.clickContinueButton();*/
+        DocumentUploadPage documentUploadPage= new DocumentUploadPage(driver);
+        documentUploadPage.uploadDocumentsSequentially("C:\\Users\\Amol Aldar\\Desktop\\Upload Documents");
+
+
     }
 
     private void performLogin() throws InterruptedException {
