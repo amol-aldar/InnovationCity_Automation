@@ -53,7 +53,7 @@ public class LeadPage extends ReusableUtil {
     @FindBy(xpath = "//input[@name='MobilePhone']")
     private WebElement mobileInput;
 
-    private final By nationalityBox = By.xpath("//button[@name='Nationality' or @aria-label='Nationality']");
+    private final By nationalityBox = By.xpath("//button[@aria-label='Nationality']");
     private final By entityTypeBox = By.xpath("//button[@aria-label='Entity Type']");
     private final By activityGroupBox = By.xpath("//button[@aria-label='Activity Group']");
     private final String dropdownItemsXpath = "//lightning-base-combobox-item//span/span";
@@ -117,38 +117,6 @@ public class LeadPage extends ReusableUtil {
     public void selectNationality(String nationality) {
         selectDropdownValue(nationalityBox, dropdownItemsXpath, nationality);
     }
-
-//    /** Generic dropdown selection logic */
-//    private void selectDropdownValue(By dropdownButton, String dropdownItemsXpath, String valueToSelect) {
-//        logger.info("[selectDropdownValue] Selecting '{}' from '{}'", valueToSelect, dropdownButton);
-//
-//        WebElement button = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownButton));
-//        scrollToElement(button);
-//
-//        try { button.click(); }
-//        catch (ElementClickInterceptedException e) {
-//            logger.warn("Click intercepted, using JS fallback...");
-//            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", button);
-//        }
-//
-//        List<WebElement> options = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath(dropdownItemsXpath)));
-//        boolean found = false;
-//
-//        for (WebElement opt : options) {
-//            if (opt.getText().trim().equalsIgnoreCase(valueToSelect)) {
-//                scrollToElement(opt);
-//                try { opt.click(); }
-//                catch (ElementClickInterceptedException e) {
-//                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", opt);
-//                }
-//                logger.info("[selectDropdownValue] ✅ Selected '{}'", valueToSelect);
-//                found = true;
-//                break;
-//            }
-//        }
-//
-//        if (!found) throw new NoSuchElementException("Dropdown option not found: " + valueToSelect);
-//    }
 
     /** Robust dropdown selection for Salesforce LWC */
     private void selectDropdownValue(By dropdownButton, String dropdownItemsXpath, String valueToSelect) {

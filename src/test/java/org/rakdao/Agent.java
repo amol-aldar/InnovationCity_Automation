@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
+import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 
 public class Agent extends BaseClass {
@@ -21,7 +23,20 @@ public class Agent extends BaseClass {
     private LeadPage leadPage;
     private OpportunityPage opportunityPage;
     SoftAssert softAssert= new SoftAssert();
-
+    public void zoomOutPage(int times) {
+        try {
+            Robot robot = new Robot();
+            for (int i = 0; i < times; i++) {
+                robot.keyPress(KeyEvent.VK_CONTROL);
+                robot.keyPress(KeyEvent.VK_MINUS);
+                robot.keyRelease(KeyEvent.VK_MINUS);
+                robot.keyRelease(KeyEvent.VK_CONTROL);
+                Thread.sleep(300);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     @Test
     public void newStandardIncorporate() throws IOException, InterruptedException {
         try {
@@ -86,10 +101,11 @@ public class Agent extends BaseClass {
             ContactPage contactPage=opportunityPage.goToContactOrAccount("Primary Contact");
             PortalApplicationPage portalApplicationPage=contactPage.goToPortal();
             portalApplicationPage.clickStartNowButton();
+            zoomOutPage(2);
             portalApplicationPage.fillCompanyDetails("India", "Company Limited by Shares");
             portalApplicationPage.fillBankDetails();
-            portalApplicationPage.clickSaveInfoButton();
-            portalApplicationPage.clickContinueButton();
+            //portalApplicationPage.clickPortalApplicationCTA("Save Info");
+            portalApplicationPage.clickPortalApplicationCTA("Continue");
             portalApplicationPage.enterNumberOfShares();
             portalApplicationPage.enterShareValue();
             portalApplicationPage.clickAddShareholder("Individual");
@@ -123,11 +139,15 @@ public class Agent extends BaseClass {
             portalApplicationPage.clickProceedButton();
             portalApplicationPage.selectUBOCheckbox();
             portalApplicationPage.selectVotingRightCheckbox();
-            portalApplicationPage.selectManagerCheckbox();
-            portalApplicationPage.selectDirectorCheckbox();
-            portalApplicationPage.selectAuthorizedSignatoryCheckbox();
+//            portalApplicationPage.selectManagerCheckbox();
+//            portalApplicationPage.selectDirectorCheckbox();
+//            portalApplicationPage.selectAuthorizedSignatoryCheckbox();
             portalApplicationPage.selectNatureOfOwnership("As a Nominee");
             portalApplicationPage.clickSubmitButton();
+            DocumentUploadPage documentUploadPage= new DocumentUploadPage(driver);
+            documentUploadPage.uploadDocumentsSequentially();
+            portalApplicationPage.clickPortalApplicationCTA("Continue");
+            documentUploadPage.clickAttentionDialogCTA("OKAY");
             softAssert.assertAll();
 
 

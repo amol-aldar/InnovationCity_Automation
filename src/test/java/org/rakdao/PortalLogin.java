@@ -111,10 +111,13 @@ public class PortalLogin {
         portalApplicationPage.selectDirectorCheckbox();
         portalApplicationPage.selectAuthorizedSignatoryCheckbox();
         portalApplicationPage.selectNatureOfOwnership("As a Nominee");
+        portalApplicationPage.enterOwnedShares();
         portalApplicationPage.clickSubmitButton();
         portalApplicationPage.clickContinueButton();*/
         DocumentUploadPage documentUploadPage= new DocumentUploadPage(driver);
-        documentUploadPage.uploadDocumentsSequentially("C:\\Users\\Amol Aldar\\Desktop\\Upload Documents");
+        documentUploadPage.uploadDocumentsSequentially();
+        portalApplicationPage.clickContinueButton();
+        documentUploadPage.clickAttentionDialogCTA("OKAY");
 
 
     }

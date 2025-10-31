@@ -163,10 +163,10 @@ public class PortalApplicationPage extends ReusableUtil {
     @FindBy(xpath = "//label[text()='Is this shareholder a Manager for this company?']")
     private WebElement isManagerCheckBoxEle;
 
-    @FindBy(xpath = "Is this shareholder a Director for this company?")
+    @FindBy(xpath = "//label[text()='Is this shareholder a Director for this company?']")
     private WebElement isDirectorCheckBoxEle;
 
-    @FindBy(xpath = "Is this shareholder an Authorized Signatory?")
+    @FindBy(xpath = "//label[text()='Is this shareholder an Authorized Signatory?']")
     private WebElement isAuthorizedSignatoryCheckBoxEle;
 
     @FindBy(xpath = "//input[starts-with(@id,'Number_of_Shares')]")
@@ -250,7 +250,7 @@ public class PortalApplicationPage extends ReusableUtil {
         enterWebsite();
         enterTaxRegistrationNumber();
         enterRegisteredOfficeAddress();
-        enterTelephoneNumber();
+        enterTelephoneNumber("Telephone Number");
         selectCompanyType(typeName);
         selectLicenseIssuedCountry(countryName);
     }
@@ -260,8 +260,11 @@ public class PortalApplicationPage extends ReusableUtil {
         typeAndLog(licenseNumberInput, licenseNumber, "License Number");
     }
 
-    public void enterTelephoneNumber() {
-        enterPhoneNumber(mobileInput, "Telephone Number");
+    public void enterTelephoneNumber(String fieldName) {
+        String xpath = String.format("//label[normalize-space(text())='%s']/preceding::input[@type='tel']", fieldName);
+        WebElement phoneField = new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
+        enterPhoneNumber(phoneField, "Telephone Number");
     }
 
     public void selectLicenseIssuedCountry(String countryName) {
@@ -344,29 +347,35 @@ public class PortalApplicationPage extends ReusableUtil {
         typeAndLog(registeredOfficeAddressInput, address, "Registered Office Address");
     }
 
-    public void clickSaveInfoButton(){
+
+    public void clickPortalApplicationCTA(String ctaLabel) {
+        String xpath = String.format("//div[contains(@class,'slds-grid')]//button[.//span[normalize-space()='%s']]", ctaLabel);
+        By ctaLocator = By.xpath(xpath);
+
         try {
-            scrollToElement(ctas.get(0));
-            waitForClickability(ctas.get(0));
-            ctas.get(0).click();
-            logger.info("➡️ Clicked Save info button.");
+            logger.info("🪄 Waiting for '{}' CTA button to be clickable...", ctaLabel);
+            WebElement button = wait.until(ExpectedConditions.elementToBeClickable(ctaLocator));
+
+            try {
+                button.click();
+                logger.info("✅ '{}' button clicked successfully.", ctaLabel);
+            } catch (ElementClickInterceptedException e) {
+                logger.warn("⚠️ Normal click failed for '{}', trying JS click...", ctaLabel);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", button);
+                logger.info("✅ JS click executed for '{}'.", ctaLabel);
+            }
+
+        } catch (TimeoutException e) {
+            logger.error("❌ '{}' button not found within timeout.", ctaLabel);
+        } catch (NoSuchElementException e) {
+            logger.error("❌ '{}' button not found in DOM.", ctaLabel);
         } catch (Exception e) {
-            logger.error("❌ Failed to click Save info button: {}", e.getMessage());
+            logger.error("❌ Unexpected error while clicking '{}': {}", ctaLabel, e.getMessage());
         }
     }
 
-    public void clickContinueButton() {
-        try {
-            scrollToElement(ctas.get(1));
-            waitForClickability(ctas.get(1));
-            ctas.get(1).click();
-            logger.info("➡️ Clicked CONTINUE to proceed.");
-        } catch (Exception e) {
-            logger.error("❌ Failed to click CONTINUE: {}", e.getMessage());
-        }
-    }
 
-    // ---------- 🔹 COMMON HELPER ----------
+// ---------- 🔹 COMMON HELPER ----------
     private void typeAndLog(WebElement element, String value, String fieldName) {
         try {
             waitForVisibility(element);
@@ -925,7 +934,8 @@ public class PortalApplicationPage extends ReusableUtil {
     }
 
     public void enterOwnedShares() {
-        int shares = 1000 + new Random().nextInt(9000); // random between 1000–9999
+//        int shares = 1000 + new Random().nextInt(9000); // random between 1000–9999
+        int shares = 1000;
         String shareText = String.valueOf(shares);
         logger.info("💰 Entering Owned Shares: {}", shareText);
         try {
