@@ -1,4 +1,4 @@
-package org.rakdao.pageObjects;
+package org.rakdao.pageObjects.salesforce;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;

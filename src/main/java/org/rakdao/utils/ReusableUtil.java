@@ -8,7 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Random;
 
 public class ReusableUtil {
 
@@ -207,6 +210,127 @@ public class ReusableUtil {
                 throw new RuntimeException("❌ Failed to click " + elementKey, ex);
             }
         }
+    }
+
+    // Generates random date strings (yyyy-MM-dd) depending on type.
+    protected String getRandomDate(String type) {
+        Random random = new Random();
+        LocalDate randomDate;
+
+        switch (type.toUpperCase()) {
+            case "DOB":
+                // Between 1970 and 2007
+                int startYearDOB = 1970;
+                int endYearDOB = 2007;
+                randomDate = LocalDate.of(startYearDOB + random.nextInt(endYearDOB - startYearDOB + 1),
+                        1 + random.nextInt(12),
+                        1 + random.nextInt(28));
+                break;
+
+            case "ISSUE":
+                // Within last 10 years
+                randomDate = LocalDate.now().minusDays(random.nextInt(365 * 10));
+                break;
+
+            case "EXPIRY":
+                // 5–10 years in the future
+                randomDate = LocalDate.now().plusDays(365 * (5 + random.nextInt(5)))
+                        .withDayOfMonth(1 + random.nextInt(28));
+                break;
+
+            default:
+                randomDate = LocalDate.now();
+                break;
+        }
+
+        return randomDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
+
+    public void selectDate(WebElement dateField, String dateValue, String fieldName) {
+
+        logger.info("📅 Attempting to enter {}: {}", fieldName, dateValue);
+
+        try {
+            wait.until(ExpectedConditions.visibilityOf(dateField));
+
+            // ✅ OPTION 1: Direct sendKeys
+            try {
+//                dateField.click();
+//                dateField.clear();
+                dateField.sendKeys(dateValue);
+                dateField.sendKeys(Keys.TAB);
+
+                if (dateField.getAttribute("value").equals(dateValue)) {
+                    logger.info("✅ Successfully entered {} using sendKeys.", fieldName);
+                    return;
+                } else {
+                    logger.warn("⚠️ sendKeys executed but value not reflected in {}. Trying JS fallback...", fieldName);
+                }
+            } catch (Exception e1) {
+                logger.warn("⚠️ sendKeys failed for {}: {}. Trying JS fallback...", fieldName, e1.getMessage());
+            }
+
+            // ✅ OPTION 2: JavaScript Fallback
+            try {
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                js.executeScript("arguments[0].value='" + dateValue + "';", dateField);
+                js.executeScript("arguments[0].dispatchEvent(new Event('change'));", dateField);
+
+                if (dateField.getAttribute("value").equals(dateValue)) {
+                    logger.info("✅ Successfully set {} using JavaScript.", fieldName);
+                    return;
+                } else {
+                    logger.warn("⚠️ JS executed but value not reflected in {}. Trying keyboard navigation...", fieldName);
+                }
+            } catch (Exception e2) {
+                logger.warn("⚠️ JavaScript fallback failed for {}: {}. Trying keyboard navigation...", fieldName, e2.getMessage());
+            }
+
+            // ✅ OPTION 3: Keyboard Navigation
+            try {
+                dateField.click();
+                dateField.sendKeys(Keys.ARROW_DOWN);
+                dateField.sendKeys(Keys.ENTER);
+
+                if (!dateField.getAttribute("value").isEmpty()) {
+                    logger.info("✅ Successfully selected {} using keyboard navigation.", fieldName);
+                    return;
+                } else {
+                    logger.warn("⚠️ Keyboard input didn’t change {}. Trying calendar click...", fieldName);
+                }
+            } catch (Exception e3) {
+                logger.warn("⚠️ Keyboard fallback failed for {}: {}. Trying calendar click...", fieldName, e3.getMessage());
+            }
+
+            // ✅ OPTION 4: Direct Calendar Click
+            try {
+                String day = dateValue.split("-")[2];
+                String xpath = String.format("//td[contains(@data-value,'%s') or text()='%s']", dateValue, Integer.parseInt(day));
+
+                WebElement dateElement = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath)));
+                dateElement.click();
+                logger.info("✅ Successfully clicked date '{}' for {}.", dateValue, fieldName);
+                return;
+            } catch (Exception e4) {
+                logger.error("❌ All fallback methods failed for {}: {}", fieldName, e4.getMessage());
+                throw new RuntimeException("Failed to set " + fieldName + " for value: " + dateValue, e4);
+            }
+
+        } catch (Exception e) {
+            logger.error("❌ Exception while handling {}: {}", fieldName, e.getMessage());
+            throw new RuntimeException(fieldName + " entry failed for value: " + dateValue, e);
+        }
+    }
+
+    // Generates a random uppercase string from A–Z of given length.
+    protected String generateRandomName(int length) {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            char randomChar = (char) ('A' + random.nextInt(26)); // A–Z
+            sb.append(randomChar);
+        }
+        return sb.toString();
     }
 
 

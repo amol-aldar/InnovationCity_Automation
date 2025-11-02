@@ -2,12 +2,12 @@ package org.rakdao;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.By;
-import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.rakdao.pageObjects.DocumentUploadPage;
-import org.rakdao.pageObjects.PortalApplicationPage;
+import org.rakdao.pageObjects.portal.DocumentUploadPage;
+import org.rakdao.pageObjects.portal.PortalApplicationPage;
+import org.rakdao.pageObjects.portal.PortalHomePage;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -68,8 +68,8 @@ public class PortalLogin {
         }
 
         // ✅ Page Object actions
-        PortalApplicationPage portalApplicationPage = new PortalApplicationPage(driver);
-        portalApplicationPage.clickStartNowButton();
+        PortalHomePage portalHomePage= new PortalHomePage(driver);
+        PortalApplicationPage portalApplicationPage = portalHomePage.clickStartNowButton();
         /*portalApplicationPage.fillCompanyDetails("India", "Company Limited by Shares");
         portalApplicationPage.fillBankDetails();
         portalApplicationPage.clickSaveInfoButton();
@@ -116,7 +116,7 @@ public class PortalLogin {
         portalApplicationPage.clickContinueButton();*/
         DocumentUploadPage documentUploadPage= new DocumentUploadPage(driver);
         documentUploadPage.uploadDocumentsSequentially();
-        portalApplicationPage.clickContinueButton();
+        portalApplicationPage.clickPortalApplicationCTA("Continue");
         documentUploadPage.clickAttentionDialogCTA("OKAY");
 
 

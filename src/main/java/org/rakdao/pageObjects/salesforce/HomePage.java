@@ -1,10 +1,11 @@
-package org.rakdao.pageObjects;
+package org.rakdao.pageObjects.salesforce;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.rakdao.pageObjects.BasePage;
 import org.rakdao.utils.JsonLocatorReader;
 import org.rakdao.utils.ReusableUtil;
 import org.slf4j.Logger;

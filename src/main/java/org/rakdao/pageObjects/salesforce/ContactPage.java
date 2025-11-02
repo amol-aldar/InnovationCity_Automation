@@ -1,8 +1,10 @@
-package org.rakdao.pageObjects;
+package org.rakdao.pageObjects.salesforce;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.rakdao.pageObjects.portal.PortalApplicationPage;
+import org.rakdao.pageObjects.portal.PortalHomePage;
 import org.rakdao.utils.ReusableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,7 @@ public class ContactPage extends ReusableUtil {
 
 
     // 🔹 Action Methods
-    public PortalApplicationPage goToPortal() {
+    public PortalHomePage goToPortal() {
         logger.info("🔍 Attempting to click 'Log in to Experience as User' button on ContactPage...");
 
         try {
@@ -53,7 +55,7 @@ public class ContactPage extends ReusableUtil {
             logger.error("❌ Unexpected error while clicking portal login: {}", e.getMessage());
             throw new RuntimeException("Error navigating to user portal", e);
         }
-        return new PortalApplicationPage(driver);
+        return new PortalHomePage(driver);
     }
 
 

@@ -1,6 +1,8 @@
 package org.rakdao.utils;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -38,9 +40,16 @@ public class DriverFactory {
                 WebDriverManager.chromedriver().setup();
                 ChromeOptions chromeOptions = new ChromeOptions();
                 chromeOptions.addArguments("--disable-notifications");// block notifications
-                chromeOptions.addArguments("user-data-dir=C:\\SeleniumChromeProfile");
-//                chromeOptions.addArguments("user-data-dir=C:\\Users\\Amol Aldar\\AppData\\Local\\Google\\Chrome\\User Data");
+                String baseProfilePath = "C:\\SeleniumChromeProfile";
+                String tempProfilePath = baseProfilePath + "\\Run_" + System.currentTimeMillis(); // unique folder
+                chromeOptions.addArguments("--disable-notifications");
+
+// 🟢 copy cookies, but reset session storage
+                chromeOptions.addArguments("user-data-dir=" + tempProfilePath);
+                chromeOptions.addArguments("--start-maximized");
                 driver = new ChromeDriver(chromeOptions);
+                driver.manage().window().setPosition(new Point(0, 0));
+                driver.manage().window().setSize(new Dimension(1366, 768));
                 log.info("Chrome browser launched successfully.");
                 break;
 
@@ -70,7 +79,7 @@ public class DriverFactory {
         }
 
         driver.manage().window().maximize();
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(30));
 
         tlDriver.set(driver);
         log.info("{} driver initialized and configured.", browser);

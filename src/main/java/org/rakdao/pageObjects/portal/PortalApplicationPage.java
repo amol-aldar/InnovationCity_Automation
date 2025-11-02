@@ -1,6 +1,5 @@
-package org.rakdao.pageObjects;
+package org.rakdao.pageObjects.portal;
 
-import ch.qos.logback.core.CoreConstants;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.FindBy;
@@ -10,14 +9,11 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.rakdao.utils.ReusableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.Duration;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
 
-import static java.lang.Thread.sleep;
+
 
 public class PortalApplicationPage extends ReusableUtil {
 
@@ -35,8 +31,51 @@ public class PortalApplicationPage extends ReusableUtil {
     // ========== 🔹 LOCATORS ==========
 
     //Portal Elements
-    @FindBy(xpath = "//button[text()='START NOW']")
-    private WebElement startNowButton;
+    @FindBy(xpath = "//input[contains(@id,'Suggested_Company_Name_1')]")
+    private WebElement businessNameOption1;
+
+    @FindBy(xpath = "//input[contains(@id,'Suggested_Company_Name_2')]")
+    private WebElement businessNameOption2;
+
+    @FindBy(xpath = "//input[contains(@id,'Suggested_Company_Name_3')]")
+    private WebElement businessNameOption3;
+
+    @FindBy(xpath = "//input[contains(@id,'NFT_Wallet_Address')]")
+    private WebElement nftWalletAddressEle;
+
+    @FindBy(xpath="//button[.//span[normalize-space()='Continue']]")
+    private WebElement nameApprovalContinueCta;
+
+    @FindBy(xpath="//span[normalize-space()='Wait for name approval']")
+    private WebElement nameApprovalWaitCta;
+
+    @FindBy(xpath="//input[@type='checkbox' and @name='tnc']")
+    private WebElement termsCondCheckboxEle;
+
+    //Payment related Locators
+    @FindBy(css="input#cardNoInput")
+    private WebElement paymentCardNumEle;
+
+    @FindBy(css="input#expDateInput")
+    private WebElement paymentCardExpDateEle;
+
+    @FindBy(css="input#cvvInput")
+    private WebElement paymentCardCVVEle;
+
+    @FindBy(css="input#chNameInput")
+    private WebElement paymentCardNameEle;
+
+    @FindBy(css="input#chNameInput")
+    private WebElement payButtonEle;
+
+
+
+
+
+
+
+
+
 
     @FindBy(xpath = "//input[@name='companyName' or @placeholder='Enter Company Name']")
     private WebElement companyNameInput;
@@ -46,8 +85,6 @@ public class PortalApplicationPage extends ReusableUtil {
 
     @FindBy(xpath = "//input[contains(@id,'Phone')]")
     private WebElement mobileInput;
-
-
 
     @FindBy(xpath = "//label[normalize-space(text())='License Issued Country']/preceding-sibling::button[contains(@class,'dao-input-button')]")
     private WebElement licenseIssueCountryBox;
@@ -119,7 +156,6 @@ public class PortalApplicationPage extends ReusableUtil {
     @FindBy(xpath = "//input[contains(@id,'LastName')]")
     private WebElement shareholderLastNameInput;
 
-
     @FindBy(xpath = "//input[contains(@id,'Birth_City')]")
     private WebElement shareholderBirthPlaceInput;
 
@@ -152,6 +188,12 @@ public class PortalApplicationPage extends ReusableUtil {
     @FindBy(xpath = "//label[text()='Same as residential address']")
     private WebElement sameResiAddressCheckboxEle;
 
+    @FindBy(xpath = "//button[@type='button' and (@title='Add Shareholder' or .//span[normalize-space()='Add Shareholder'])]")
+    private WebElement addShareholderLinkEle;
+
+
+
+
     //Shareholder Roles
 
     @FindBy(xpath = "//label[text()='Is UBO?']")
@@ -175,74 +217,255 @@ public class PortalApplicationPage extends ReusableUtil {
     @FindBy(xpath = "//footer[contains(@class,'dao-modal-footer')]//button[normalize-space()='SUBMIT']")
     private WebElement submitButtonEle;
 
-
-
-
-
-
-
-
-
-
-
+    @FindBy(css = "div[id*='toastDescription']")
+    private WebElement shareholderSuccessMesEle ;
 
 
 
 
     // ========== 🔹 ACTION METHOD ==========
 
-    public void clickStartNowButton() {
-        logger.info("🟢 Attempting to click 'Start Now' button...");
+    public void enterBusinessNamePreferences(String suffix) {
+        try {
+            String name1 = generateRandomName(8) + "_" + suffix;
+            String name2 = generateRandomName(8) + "_" + suffix;
+            String name3 = generateRandomName(8) + "_" + suffix;
 
-//        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));
-        JavascriptExecutor js = (JavascriptExecutor) driver;
+            typeAndLog(businessNameOption1, name1, "Option 1");
+            typeAndLog(businessNameOption2, name2, "Option 2");
+            typeAndLog(businessNameOption3, name3, "Option 3");
+
+            logger.info("✅ Entered 3 random business names with suffix '{}'", suffix);
+        } catch (Exception e) {
+            logger.error("❌ Failed to enter business names: {}", e.getMessage());
+        }
+    }
+
+    public void selectActivityGroup(String activityGroup){
+        clickShareholderField("Activity Group");
+
+        By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + activityGroup + "']");
+        WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
+
+        scrollToElement(option);
+        option.click();
+
+    }
+
+    public void selectBusinessActivity(String businessActivity){
+        clickShareholderField("Business Activity");
+
+        By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + businessActivity + "']");
+        WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
+
+        scrollToElement(option);
+        option.click();
+    }
+
+    public void selectCompany(String type){
+        clickShareholderField("Company Limited By Shares");
+
+        By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + type + "']");
+        WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
+
+        scrollToElement(option);
+        option.click();
+
+    }
+
+    public void selectCompanyOwnedBy(String companyOwnedBy){
+        clickShareholderField("Company Owned By");
+
+        By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + companyOwnedBy + "']");
+        WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
+
+        scrollToElement(option);
+        option.click();
+    }
+
+    public void selectJurisdictionType(String jurisdictionType){
+        clickShareholderField("Jurisdiction Type");
+
+        By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + jurisdictionType + "']");
+        WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
+
+        scrollToElement(option);
+        option.click();
+    }
+
+
+    public void enterNFTLicense(String nftWalletAddress){
+
+        typeAndLog(nftWalletAddressEle, nftWalletAddress, "Enter your Avalanche wallet address");
+    }
+
+    public void shouldWaitNameApproval(String shouldWait) {
+        try {
+            if (shouldWait.equalsIgnoreCase("Yes")) {
+                logger.info("🕒 User opted to wait for name approval — clicking 'Wait for name approval' button...");
+                waitForClickability(nameApprovalWaitCta);
+                try {
+                    nameApprovalWaitCta.click();
+                    logger.info("✅ Clicked on 'Wait for name approval' button successfully.");
+                } catch (Exception e) {
+                    logger.warn("⚠️ Normal click failed for 'Wait for name approval'. Trying JS click...");
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", nameApprovalWaitCta);
+                    logger.info("✅ JS click succeeded for 'Wait for name approval'.");
+                }
+            } else {
+                logger.info("➡️ Proceeding without waiting — clicking 'Continue' button...");
+                waitForClickability(nameApprovalContinueCta);
+                try {
+                    nameApprovalContinueCta.click();
+                    logger.info("✅ Clicked on 'Continue' button successfully.");
+                } catch (Exception e) {
+                    logger.warn("⚠️ Normal click failed for 'Continue'. Trying JS click...");
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", nameApprovalContinueCta);
+                    logger.info("✅ JS click succeeded for 'Continue' button.");
+                }
+            }
+        } catch (Exception e) {
+            logger.error("❌ Failed during name approval action (shouldWait={}): {}", shouldWait, e.getMessage());
+            throw e;
+        }
+    }
+
+
+
+    /**
+     * Selects a payment method dynamically by its display name (e.g. "Credit/Debit Card", "Wire Transfer", "Others").
+     * Uses a contains(@class,'dao-payment-method_button') XPath (works for dynamic class attributes),
+     * falls back to matching visible label text if data-name is missing, and tries JS click if normal click fails.
+     */
+    public void selectPaymentMethod(String paymentType) {
+        logger.info("💳 Attempting to select payment method: {}", paymentType);
+
+        // Primary XPath: matches data-name AND uses contains() for class
+        String xpathPrimary = String.format("//div[contains(@class,'dao-payment-method_button') and @data-name='%s']", paymentType);
+
+        // Fallback XPath: match by visible text inside the div label in case data-name is absent/changed
+        String xpathFallback = String.format("//div[contains(@class,'dao-payment-method_button') and (.//div[normalize-space(text())='%s' or normalize-space()=' %s '])]", paymentType, paymentType);
+
+        By byPrimary = By.xpath(xpathPrimary);
+        By byFallback = By.xpath(xpathFallback);
 
         try {
-            // 1️⃣ Wait until button appears
-            waitForVisibility(startNowButton);
-            waitForClickability(startNowButton);
-            scrollToElement(startNowButton);
-
-            // 2️⃣ Verify the element is enabled and displayed
-            if (!startNowButton.isDisplayed() || !startNowButton.isEnabled()) {
-                logger.warn("⚠️ 'Start Now' button is not fully ready (displayed={}, enabled={})",
-                        startNowButton.isDisplayed(), startNowButton.isEnabled());
-                waitForClickability(startNowButton);
+            WebElement paymentOption;
+            try {
+                paymentOption = wait.until(ExpectedConditions.visibilityOfElementLocated(byPrimary));
+                logger.debug("Found payment option using primary xpath: {}", xpathPrimary);
+            } catch (TimeoutException te) {
+                logger.debug("Primary xpath not found within timeout, trying fallback xpath: {}", xpathFallback);
+                paymentOption = wait.until(ExpectedConditions.visibilityOfElementLocated(byFallback));
             }
 
-            // 3️⃣ Try standard click
+            // Attempt normal click, then JS fallback
             try {
-                startNowButton.click();
-                logger.info("✅ Successfully clicked 'Start Now' button using standard click.");
-                return;
-            } catch (ElementClickInterceptedException e) {
-                logger.warn("⚠️ Standard click intercepted — retrying with JavaScript click...");
-                js.executeScript("arguments[0].click();", startNowButton);
-                logger.info("✅ Clicked 'Start Now' button using JavaScript fallback.");
-                return;
+                wait.until(ExpectedConditions.elementToBeClickable(paymentOption));
+                paymentOption.click();
+                logger.info("✅ Successfully clicked on payment option: {}", paymentType);
+            } catch (Exception clickEx) {
+                logger.warn("⚠️ Normal click failed for '{}', retrying with JS click...", paymentType, clickEx);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", paymentOption);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", paymentOption);
+                logger.info("✅ JS click succeeded for payment method: {}", paymentType);
             }
 
         } catch (TimeoutException te) {
-            logger.error("❌ Timeout while waiting for 'Start Now' button: {}", te.getMessage());
-            throw new RuntimeException("Start Now button not clickable or not found.", te);
-
-        } catch (StaleElementReferenceException se) {
-            logger.warn("♻️ StaleElementReferenceException caught — retrying lookup for 'Start Now' button...");
-            try {
-                WebElement refreshedButton = driver.findElement(By.xpath("//button[contains(.,'Start Now')]"));
-                js.executeScript("arguments[0].scrollIntoView({block:'center'});", refreshedButton);
-                js.executeScript("arguments[0].click();", refreshedButton);
-                logger.info("✅ Successfully clicked 'Start Now' button after stale element refresh.");
-            } catch (Exception e2) {
-                logger.error("❌ Retry failed after stale element refresh: {}", e2.getMessage());
-                throw new RuntimeException("Failed to click Start Now after retry.", e2);
-            }
-
+            logger.error("❌ Payment option '{}' not found within timeout (tried primary and fallback).", paymentType);
+            throw te;
         } catch (Exception e) {
-            logger.error("❌ Unexpected error while clicking 'Start Now' button: {}", e.getMessage(), e);
-            throw new RuntimeException("Error clicking Start Now button.", e);
+            logger.error("❌ Unexpected error while selecting payment method '{}': {}", paymentType, e.getMessage(), e);
+            throw e;
         }
     }
+
+    public void acceptTermsAndConditions() {
+
+
+        try {
+            logger.info("☑️ Attempting to select 'Terms & Conditions' checkbox...");
+
+            waitForVisibility(termsCondCheckboxEle);
+
+            if (!termsCondCheckboxEle.isSelected()) {
+                try {
+                    termsCondCheckboxEle.click();
+                    logger.info("✅ 'Terms & Conditions' checkbox clicked successfully.");
+                } catch (Exception e) {
+                    logger.warn("⚠️ Normal click failed on T&C checkbox, retrying with JS click: {}", e.getMessage());
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", termsCondCheckboxEle);
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", termsCondCheckboxEle);
+                    logger.info("✅ JS click succeeded for 'Terms & Conditions' checkbox.");
+                }
+            } else {
+                logger.info("ℹ️ 'Terms & Conditions' checkbox is already selected — skipping click.");
+            }
+
+        } catch (TimeoutException te) {
+            logger.error("❌ 'Terms & Conditions' checkbox not found on the page within timeout.");
+            throw te;
+        } catch (Exception e) {
+            logger.error("❌ Unexpected error while selecting T&C checkbox: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public void enterPaymentDetails(String cardNumber, String expiryDate, String cvv, String cardHolderName) {
+        logger.info("💳 Starting to enter payment details...");
+
+        try {
+            // Wait for card number field and enter value
+            waitForVisibility(paymentCardNumEle);
+            paymentCardNumEle.clear();
+            paymentCardNumEle.sendKeys(cardNumber);
+            logger.info("✅ Entered Card Number: {}", cardNumber);
+
+            // Enter expiry date
+            waitForVisibility(paymentCardExpDateEle);
+            paymentCardExpDateEle.clear();
+            paymentCardExpDateEle.sendKeys(expiryDate);
+            logger.info("📅 Entered Expiry Date: {}", expiryDate);
+
+            // Enter CVV
+            waitForVisibility(paymentCardCVVEle);
+            paymentCardCVVEle.clear();
+            paymentCardCVVEle.sendKeys(cvv);
+            logger.info("🔐 Entered CVV (hidden for security).");
+
+            // Enter Cardholder Name
+            waitForVisibility(paymentCardNameEle);
+            paymentCardNameEle.clear();
+            paymentCardNameEle.sendKeys(cardHolderName);
+            logger.info("👤 Entered Cardholder Name: {}", cardHolderName);
+
+            // Click Pay button
+            waitForClickability(payButtonEle);
+            try {
+                payButtonEle.click();
+                logger.info("💰 Clicked on 'Pay' button successfully.");
+            } catch (Exception e) {
+                logger.warn("⚠️ Normal click on 'Pay' button failed. Retrying with JS click: {}", e.getMessage());
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", payButtonEle);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", payButtonEle);
+                logger.info("✅ JS click succeeded for 'Pay' button.");
+            }
+
+        } catch (TimeoutException te) {
+            logger.error("❌ Timeout while filling payment details: {}", te.getMessage());
+            throw te;
+        } catch (Exception e) {
+            logger.error("❌ Unexpected error during payment entry: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+
+
+
+
+    // ---------------- Utility Methods ----------------
+
 
     public void fillCompanyDetails(String countryName,String typeName){
         enterLicenseNumber();
@@ -295,8 +518,6 @@ public class PortalApplicationPage extends ReusableUtil {
         }
     }
 
-
-
     public void enterOfficialEmail() {
         String email = "qa.company" + random.nextInt(999) + "@example.com";
         typeAndLog(emailInput, email, "Official Email");
@@ -315,8 +536,6 @@ public class PortalApplicationPage extends ReusableUtil {
     public void selectCompanyType(String companyType) {
         try {
             logger.info("🔽 Selecting Company Type: {}", companyType);
-
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
 
             // 1️⃣ Click dropdown button
             WebElement companyTypeButton = driver.findElement(By.xpath(
@@ -354,7 +573,7 @@ public class PortalApplicationPage extends ReusableUtil {
 
         try {
             logger.info("🪄 Waiting for '{}' CTA button to be clickable...", ctaLabel);
-            WebElement button = wait.until(ExpectedConditions.elementToBeClickable(ctaLocator));
+            WebElement button = waitForClickability(driver.findElement(ctaLocator));
 
             try {
                 button.click();
@@ -387,6 +606,8 @@ public class PortalApplicationPage extends ReusableUtil {
             logger.warn("⚠️ Could not fill '{}': {}", fieldName, e.getMessage());
         }
     }
+
+
 
     public void fillBankDetails() {
         try {
@@ -439,12 +660,15 @@ public class PortalApplicationPage extends ReusableUtil {
     //Shareholder details
 
     public void enterNumberOfShares(){
-        String shareNumber="1000";
+
+        int shares = 1000;
+        String shareNumber = String.valueOf(shares);
         typeAndLog(shareNumberInput, shareNumber, "Number Of Shares");
     }
 
     public void enterShareValue(){
-        String shareValue="100";
+        int shares = 1000;
+        String shareValue = String.valueOf(shares);
         typeAndLog(shareValueInput, shareValue, "Each Share Value");
     }
 
@@ -952,7 +1176,7 @@ public class PortalApplicationPage extends ReusableUtil {
         }
     }
 
-    public void clickSubmitButton() {
+    public String clickSubmitButton() {
         logger.info("🖱️ Attempting to click Submit button...");
         try {
             scrollToElement(submitButtonEle);
@@ -968,9 +1192,9 @@ public class PortalApplicationPage extends ReusableUtil {
                 logger.error("❌ Failed to click Submit button even with JS fallback: {}", jsEx.getMessage());
             }
         }
+        waitForVisibility(shareholderSuccessMesEle);
+        return shareholderSuccessMesEle.getText();
     }
-
-
 
     private void clickCheckboxWithFallback(WebElement element, String checkboxName) {
         logger.info("☑️ Attempting to select '{}' checkbox...", checkboxName);
@@ -992,9 +1216,6 @@ public class PortalApplicationPage extends ReusableUtil {
         }
     }
 
-
-
-
     // JS fallback for setting input field value when sendKeys fails.
 
     private void setValueUsingJS(WebElement element, String value, String fieldName) {
@@ -1008,126 +1229,6 @@ public class PortalApplicationPage extends ReusableUtil {
             throw new RuntimeException("Failed to enter value for " + fieldName, e);
         }
     }
-
-
-
-
-
-
-    // Generates random date strings (yyyy-MM-dd) depending on type.
-
-    private String getRandomDate(String type) {
-        Random random = new Random();
-        LocalDate randomDate;
-
-        switch (type.toUpperCase()) {
-            case "DOB":
-                // Between 1970 and 2007
-                int startYearDOB = 1970;
-                int endYearDOB = 2007;
-                randomDate = LocalDate.of(startYearDOB + random.nextInt(endYearDOB - startYearDOB + 1),
-                        1 + random.nextInt(12),
-                        1 + random.nextInt(28));
-                break;
-
-            case "ISSUE":
-                // Within last 10 years
-                randomDate = LocalDate.now().minusDays(random.nextInt(365 * 10));
-                break;
-
-            case "EXPIRY":
-                // 5–10 years in the future
-                randomDate = LocalDate.now().plusDays(365 * (5 + random.nextInt(5)))
-                        .withDayOfMonth(1 + random.nextInt(28));
-                break;
-
-            default:
-                randomDate = LocalDate.now();
-                break;
-        }
-
-        return randomDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-    }
-
-
-    public void selectDate(WebElement dateField, String dateValue, String fieldName) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-
-        logger.info("📅 Attempting to enter {}: {}", fieldName, dateValue);
-
-        try {
-            wait.until(ExpectedConditions.visibilityOf(dateField));
-
-            // ✅ OPTION 1: Direct sendKeys
-            try {
-//                dateField.click();
-//                dateField.clear();
-                dateField.sendKeys(dateValue);
-                dateField.sendKeys(Keys.TAB);
-
-                if (dateField.getAttribute("value").equals(dateValue)) {
-                    logger.info("✅ Successfully entered {} using sendKeys.", fieldName);
-                    return;
-                } else {
-                    logger.warn("⚠️ sendKeys executed but value not reflected in {}. Trying JS fallback...", fieldName);
-                }
-            } catch (Exception e1) {
-                logger.warn("⚠️ sendKeys failed for {}: {}. Trying JS fallback...", fieldName, e1.getMessage());
-            }
-
-            // ✅ OPTION 2: JavaScript Fallback
-            try {
-                JavascriptExecutor js = (JavascriptExecutor) driver;
-                js.executeScript("arguments[0].value='" + dateValue + "';", dateField);
-                js.executeScript("arguments[0].dispatchEvent(new Event('change'));", dateField);
-
-                if (dateField.getAttribute("value").equals(dateValue)) {
-                    logger.info("✅ Successfully set {} using JavaScript.", fieldName);
-                    return;
-                } else {
-                    logger.warn("⚠️ JS executed but value not reflected in {}. Trying keyboard navigation...", fieldName);
-                }
-            } catch (Exception e2) {
-                logger.warn("⚠️ JavaScript fallback failed for {}: {}. Trying keyboard navigation...", fieldName, e2.getMessage());
-            }
-
-            // ✅ OPTION 3: Keyboard Navigation
-            try {
-                dateField.click();
-                dateField.sendKeys(Keys.ARROW_DOWN);
-                dateField.sendKeys(Keys.ENTER);
-
-                if (!dateField.getAttribute("value").isEmpty()) {
-                    logger.info("✅ Successfully selected {} using keyboard navigation.", fieldName);
-                    return;
-                } else {
-                    logger.warn("⚠️ Keyboard input didn’t change {}. Trying calendar click...", fieldName);
-                }
-            } catch (Exception e3) {
-                logger.warn("⚠️ Keyboard fallback failed for {}: {}. Trying calendar click...", fieldName, e3.getMessage());
-            }
-
-            // ✅ OPTION 4: Direct Calendar Click
-            try {
-                String day = dateValue.split("-")[2];
-                String xpath = String.format("//td[contains(@data-value,'%s') or text()='%s']", dateValue, Integer.parseInt(day));
-
-                WebElement dateElement = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath)));
-                dateElement.click();
-                logger.info("✅ Successfully clicked date '{}' for {}.", dateValue, fieldName);
-                return;
-            } catch (Exception e4) {
-                logger.error("❌ All fallback methods failed for {}: {}", fieldName, e4.getMessage());
-                throw new RuntimeException("Failed to set " + fieldName + " for value: " + dateValue, e4);
-            }
-
-        } catch (Exception e) {
-            logger.error("❌ Exception while handling {}: {}", fieldName, e.getMessage());
-            throw new RuntimeException(fieldName + " entry failed for value: " + dateValue, e);
-        }
-    }
-
-
 
 }
 

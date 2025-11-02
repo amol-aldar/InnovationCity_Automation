@@ -1,8 +1,10 @@
 package org.rakdao;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.rakdao.base.BaseClass;
-import org.rakdao.pageObjects.*;
+import org.rakdao.pageObjects.portal.DocumentUploadPage;
+import org.rakdao.pageObjects.portal.PortalApplicationPage;
+import org.rakdao.pageObjects.portal.PortalHomePage;
+import org.rakdao.pageObjects.salesforce.*;
 import org.rakdao.utils.ConfigReader;
 import org.rakdao.utils.LoggerUtil;
 import org.rakdao.utils.User;
@@ -37,8 +39,23 @@ public class Agent extends BaseClass {
             e.printStackTrace();
         }
     }
+
+    public void zoomInPage(int times) {
+        try {
+            Robot robot = new Robot();
+            for (int i = 0; i < times; i++) {
+                robot.keyPress(KeyEvent.VK_CONTROL);
+                robot.keyPress(KeyEvent.VK_PLUS);
+                robot.keyRelease(KeyEvent.VK_PLUS);
+                robot.keyRelease(KeyEvent.VK_CONTROL);
+                Thread.sleep(300);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     @Test
-    public void newStandardIncorporate() throws IOException, InterruptedException {
+    public void AgentOnboarding() throws IOException, InterruptedException {
         try {
             log.info("=== 🚀 Starting Standard Incorporate Test ===");
 
@@ -99,12 +116,12 @@ public class Agent extends BaseClass {
             softAssert.assertEquals(successMsgText,"Stage changed successfully.");
             log.info("✅ Opportunity closing successfully ");
             ContactPage contactPage=opportunityPage.goToContactOrAccount("Primary Contact");
-            PortalApplicationPage portalApplicationPage=contactPage.goToPortal();
-            portalApplicationPage.clickStartNowButton();
-            zoomOutPage(2);
+            PortalHomePage portalHomePage=contactPage.goToPortal();
+            PortalApplicationPage portalApplicationPage=portalHomePage.clickStartNowButton();
+//            zoomInPage(2);
             portalApplicationPage.fillCompanyDetails("India", "Company Limited by Shares");
             portalApplicationPage.fillBankDetails();
-            //portalApplicationPage.clickPortalApplicationCTA("Save Info");
+            portalApplicationPage.clickPortalApplicationCTA("Save As Draft");
             portalApplicationPage.clickPortalApplicationCTA("Continue");
             portalApplicationPage.enterNumberOfShares();
             portalApplicationPage.enterShareValue();
@@ -139,10 +156,12 @@ public class Agent extends BaseClass {
             portalApplicationPage.clickProceedButton();
             portalApplicationPage.selectUBOCheckbox();
             portalApplicationPage.selectVotingRightCheckbox();
-//            portalApplicationPage.selectManagerCheckbox();
-//            portalApplicationPage.selectDirectorCheckbox();
-//            portalApplicationPage.selectAuthorizedSignatoryCheckbox();
+            portalApplicationPage.selectManagerCheckbox();
+            portalApplicationPage.selectDirectorCheckbox();
+            portalApplicationPage.selectAuthorizedSignatoryCheckbox();
             portalApplicationPage.selectNatureOfOwnership("As a Nominee");
+            portalApplicationPage.enterOwnedShares();
+            Thread.sleep(5000);
             portalApplicationPage.clickSubmitButton();
             DocumentUploadPage documentUploadPage= new DocumentUploadPage(driver);
             documentUploadPage.uploadDocumentsSequentially();
