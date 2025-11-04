@@ -17,7 +17,7 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.time.Duration;
 
-public class PortalLogin {
+public class AgentPortalLogin {
 
     private WebDriver driver;
     private static final String PORTAL_URL = "https://innovationcity--staging.sandbox.my.site.com/AgentPortal/s/login/";

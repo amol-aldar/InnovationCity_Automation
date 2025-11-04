@@ -12,7 +12,6 @@ import org.rakdao.utils.UserGenerator;
 import org.slf4j.Logger;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
-
 import java.io.IOException;
 
 public class StandardIncorporate extends BaseClass {
@@ -22,31 +21,39 @@ public class StandardIncorporate extends BaseClass {
     private HomePage homePage;
     private LeadPage leadPage;
     private OpportunityPage opportunityPage;
-    SoftAssert softAssert= new SoftAssert();
+    SoftAssert softAssert = new SoftAssert();
 
     @Test
     public void newStandardIncorporate() throws IOException, InterruptedException {
         try {
             log.info("=== 🚀 Starting Standard Incorporate Test ===");
 
-            // 🧩 Generate random test data
+            // ============================================================
+            // 🧩 STEP 1: Generate random test data
+            // ============================================================
             User user = UserGenerator.generateUser();
             log.info("Generated test user: {} {}", user.getFirstName(), user.getLastName());
 
-            // 🔐 Login
+            // ============================================================
+            // 🔐 STEP 2: Login to Salesforce
+            // ============================================================
             loginPage = new LoginPage(driver);
             loginPage.enterUsername(ConfigReader.get("adminUserName"));
             loginPage.enterPassword(ConfigReader.get("adminPassword"));
             loginPage.clickLogin();
             log.info("✅ Login successful.");
 
-            // 🏠 Navigate to Leads tab
+            // ============================================================
+            // 🏠 STEP 3: Navigate to Leads tab and create a new Lead
+            // ============================================================
             homePage = new HomePage(driver);
-            homePage.clickNavigationTab("leads");  // from NavigationBar.json
-            homePage.clickNewLeadButton();                // opens Lead modal
-            leadPage = homePage.goToLeadPage();     // switch control to LeadPage
+            homePage.clickNavigationTab("leads");  // fetched from NavigationBar.json
+            homePage.clickNewLeadButton();         // opens Lead modal
+            leadPage = homePage.goToLeadPage();    // switch control to LeadPage
 
-            // 🧾 Lead creation steps
+            // ============================================================
+            // 🧾 STEP 4: Fill in Lead details
+            // ============================================================
             leadPage.selectRecordType("Customer");
             leadPage.clickNext("Next");
             leadPage.enterLeadDetails(
@@ -59,29 +66,34 @@ public class StandardIncorporate extends BaseClass {
             leadPage.selectEntityType("Standard Company");
             leadPage.selectActivityGroup("Blockchain Development, DLT services & Software");
             leadPage.selectNationality("India");
-
             leadPage.clickRibbonCta("Save");
             log.info("✅ Lead details entered and saved.");
 
-            // 🔄 Convert Lead → Opportunity
-            Thread.sleep(1000);
+            // ============================================================
+            // 🔄 STEP 5: Convert Lead to Opportunity
+            // ============================================================
+            Thread.sleep(2000);
             leadPage.convertLeadToOpportunity("Converted");
             leadPage.clickMarkStageComplete();
             leadPage.clickLeadModalCta("Convert");
             log.info("✅ Lead converted successfully.");
 
-            // 💼 Open opportunity and continue
+            // ============================================================
+            // 💼 STEP 6: Open Opportunity and add product
+            // ============================================================
             opportunityPage = leadPage.goToAccountContactOpportunity("Opportunity");
             opportunityPage.clickAddProduct();
             opportunityPage.goToProductListingModal("Save");
+            Thread.sleep(2000);
             opportunityPage.chooseProductFromStandardBook("Standard Company / 1 visa / 1 year");
             opportunityPage.clickOnCta("Next");
             Thread.sleep(2000);
             opportunityPage.clickEditProductModalCta("Save");
-            Thread.sleep(2000);
             opportunityPage.clickAddInventoryButton();
 
-            // 🏢 Inventory selection logic
+            // ============================================================
+            // 🏢 STEP 7: Select Inventory (based on entity and customer type)
+            // ============================================================
             opportunityPage.ensureEntityType("Standard Company");
             opportunityPage.ensureCustomerLookingFor("Co-Working Space");
             opportunityPage.ensureResourceType("Shared Desk");
@@ -90,30 +102,51 @@ public class StandardIncorporate extends BaseClass {
             opportunityPage.selectInventoryByRentalAmount("3000");
             opportunityPage.clickAddSelectedInveButton();
 
-            // 🏁 Opportunity closure
+            // ============================================================
+            // 🏁 STEP 8: Close Opportunity and move to Portal
+            // ============================================================
             opportunityPage.clickOpportunityStage("Closing");
             opportunityPage.clickOpportunityCompleteButton();
             log.info("✅ Product selection & Opportunity completion done.");
-            ContactPage contactPage=opportunityPage.goToContactOrAccount("Primary Contact");
-            PortalHomePage portalHomePage=contactPage.goToPortal();
-            PortalApplicationPage portalApplicationPage=portalHomePage.clickContinueWithApplication();
+
+            // ============================================================
+            // 🌐 STEP 9: Open Portal and continue application
+            // ============================================================
+            ContactPage contactPage = opportunityPage.goToContactOrAccount("Primary Contact");
+            PortalHomePage portalHomePage = contactPage.goToPortal();
+            PortalApplicationPage portalApplicationPage = portalHomePage.clickContinueWithApplication();
+
+            // ============================================================
+            // 🧭 STEP 10: Fill Business Information in Portal
+            // ============================================================
             portalApplicationPage.clickPortalApplicationCTA("Save As Draft");
             portalApplicationPage.clickPortalApplicationCTA("Let’s Get Started");
             portalApplicationPage.enterBusinessNamePreferences("Ltd");
-            portalApplicationPage.selectActivityGroup("Artificial Intelligence");
-            portalApplicationPage.selectBusinessActivity("Digital Analytics Services");
-            portalApplicationPage.selectCompanyType("Company Limited by Shares");
+//            portalApplicationPage.selectActivityGroup("Artificial Intelligence");
+            portalApplicationPage.selectBusinessActivity("Blockchain Oracle");
+            portalApplicationPage.selectCompanyTypeForCustomer("Company Limited by Shares");
             portalApplicationPage.selectCompany("Limited");
             portalApplicationPage.selectCompanyOwnedBy("Individual Shareholders");
             portalApplicationPage.selectJurisdictionType("Common Law – DIFC");
             portalApplicationPage.clickPortalApplicationCTA("Save As Draft");
             portalApplicationPage.clickPortalApplicationCTA("Continue");
+
+            // ============================================================
+            // 🕒 STEP 11: Handle Name Approval (Dynamic)
+            // ============================================================
             portalApplicationPage.shouldWaitNameApproval("No");
+
+            // ============================================================
+            // 💳 STEP 12: Select Payment Method and Process Payment
+            // ============================================================
             portalApplicationPage.selectPaymentMethod("Credit/Debit Card");
             portalApplicationPage.acceptTermsAndConditions();
             portalApplicationPage.clickPortalApplicationCTA("Proceed With Payment");
-            portalApplicationPage.enterPaymentDetails("41111111111111111","12/30","123","Amol");
+            portalApplicationPage.enterPaymentDetails("41111111111111111", "12/30", "123", "Amol");
 
+            // ============================================================
+            // 👥 STEP 13: Enter Shareholder Details
+            // ============================================================
             portalApplicationPage.enterNumberOfShares();
             portalApplicationPage.enterShareValue();
             portalApplicationPage.clickAddShareholder("Individual");
@@ -129,11 +162,16 @@ public class StandardIncorporate extends BaseClass {
             portalApplicationPage.enterPassportExpiryDate();
             portalApplicationPage.selectPassportIssueCountry("India");
             portalApplicationPage.clickProceedButton();
+
             portalApplicationPage.selectVisaType("No UAE Visa");
             portalApplicationPage.clickProceedButton();
             portalApplicationPage.enterShareholderPrimaryEmail("Primary Email");
             portalApplicationPage.enterShareholderPrimaryMobileNum("Primary Phone");
             portalApplicationPage.clickProceedButton();
+
+            // ============================================================
+            // 🏠 STEP 14: Enter Residential Information
+            // ============================================================
             portalApplicationPage.selectResidentialCountry("India");
             portalApplicationPage.selectResidentialProvince("Maharashtra");
             portalApplicationPage.enterResidentialBuildingName();
@@ -145,6 +183,10 @@ public class StandardIncorporate extends BaseClass {
             portalApplicationPage.selectYearsLiving();
             portalApplicationPage.selectResidentialAddressCheckbox();
             portalApplicationPage.clickProceedButton();
+
+            // ============================================================
+            // 🗳️ STEP 15: UBO, Roles, and Ownership Declaration
+            // ============================================================
             portalApplicationPage.selectUBOCheckbox();
             portalApplicationPage.selectVotingRightCheckbox();
             portalApplicationPage.selectManagerCheckbox();
@@ -152,32 +194,29 @@ public class StandardIncorporate extends BaseClass {
             portalApplicationPage.selectAuthorizedSignatoryCheckbox();
             portalApplicationPage.selectNatureOfOwnership("Control through other means e.g. holds decision or veto rights and /or controls the rights of others");
             portalApplicationPage.enterOwnedShares();
+
+            // ============================================================
+            // ✅ STEP 16: Submit Shareholder Details
+            // ============================================================
             Thread.sleep(5000);
-            String shareholderSubSucMsg=portalApplicationPage.clickSubmitButton();
-            softAssert.assertEquals(shareholderSubSucMsg,"Shareholder’s information saved");
+            String shareholderSubSucMsg = portalApplicationPage.clickSubmitButton();
+            softAssert.assertEquals(shareholderSubSucMsg, "Shareholder’s information saved");
+            log.info("✅ Shareholder information submitted successfully.");
 
+            // ============================================================
+            // 📄 STEP 17: Document Upload
+            // ============================================================
             portalApplicationPage.clickPortalApplicationCTA("Continue");
-
             portalApplicationPage.clickPortalApplicationCTA("Continue");
-
-            DocumentUploadPage documentUploadPage= new DocumentUploadPage(driver);
+            DocumentUploadPage documentUploadPage = new DocumentUploadPage(driver);
             documentUploadPage.uploadDocumentsSequentially();
 
+            // ============================================================
+            // 🏁 STEP 18: Final Continuation
+            // ============================================================
             portalApplicationPage.clickPortalApplicationCTA("Continue");
-
-
-
-
-
-
-
-
-
-
-
-
-
             Thread.sleep(3000);
+
             log.info("=== 🎉 Standard Incorporate Test Completed Successfully ===");
 
         } catch (Exception e) {

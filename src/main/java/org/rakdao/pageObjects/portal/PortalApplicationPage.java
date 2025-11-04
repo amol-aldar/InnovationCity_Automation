@@ -227,9 +227,9 @@ public class PortalApplicationPage extends ReusableUtil {
 
     public void enterBusinessNamePreferences(String suffix) {
         try {
-            String name1 = generateRandomName(8) + "_" + suffix;
-            String name2 = generateRandomName(8) + "_" + suffix;
-            String name3 = generateRandomName(8) + "_" + suffix;
+            String name1 = generateRandomName(8) + " " + suffix;
+            String name2 = generateRandomName(8) + " " + suffix;
+            String name3 = generateRandomName(8) + " " + suffix;
 
             typeAndLog(businessNameOption1, name1, "Option 1");
             typeAndLog(businessNameOption2, name2, "Option 2");
@@ -243,7 +243,6 @@ public class PortalApplicationPage extends ReusableUtil {
 
     public void selectActivityGroup(String activityGroup){
         clickShareholderField("Activity Group");
-
         By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + activityGroup + "']");
         WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
 
@@ -256,6 +255,17 @@ public class PortalApplicationPage extends ReusableUtil {
         clickShareholderField("Business Activity");
 
         By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + businessActivity + "']");
+        WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
+
+        scrollToElement(option);
+        option.click();
+    }
+
+    public void selectCompanyTypeForCustomer(String type){
+//        scrollToElement(driver.findElement(By.xpath("//label[text()='Company Type']/preceding-sibling::button")));
+        clickShareholderField("Company Type");
+
+        By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + type + "']");
         WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(dropdownOption));
 
         scrollToElement(option);
@@ -789,7 +799,7 @@ public class PortalApplicationPage extends ReusableUtil {
     public void clickShareholderField(String fieldName){
         // XPath to get the button above the label
         String xpath = String.format("//label[text()='%s']/preceding-sibling::button", fieldName);
-
+        scrollToElement(driver.findElement(By.xpath(xpath)));
         WebElement button = driver.findElement(By.xpath(xpath));
 
         button.click();

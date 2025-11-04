@@ -4,6 +4,7 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.rakdao.utils.ReusableUtil;
@@ -12,9 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.testng.asserts.SoftAssert;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.*;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 public class OpportunityPage extends ReusableUtil {
 
@@ -44,11 +44,18 @@ public class OpportunityPage extends ReusableUtil {
     @FindBy(css = "input[title='Search Products']")
     private WebElement productSearchBoxEle;
 
+    @FindBy(css = "div.listContent")
+    private WebElement productListBoxEle;
+
+    By listBoxLocator=By.xpath("//div[@role='listbox']");
+
+
+
     @FindBy(xpath = "//span[@part='formatted-rich-text' and contains(., 'visa') and contains(., 'year')]")
     private List<WebElement> productDropdown;
 
     // Table element
-    @FindBy(css = ".slds-grid.listDisplays.safari-workaround-anchor table.slds-table")
+    @FindBy(css = "div.modal-body.scrollable.slds-modal__content.slds-p-around_medium")
     private WebElement productTable;
 
     // Headers
@@ -184,41 +191,46 @@ public class OpportunityPage extends ReusableUtil {
             throw new RuntimeException("Could not click Price Book CTA: " + ctaText, e);
         }
     }
+    public void chooseProductFromStandardBook(String productName) throws InterruptedException {
+        waitForVisibility(productSearchBoxEle);
+        for (char c : productName.toCharArray()) {
+            productSearchBoxEle.sendKeys(Character.toString(c));
+            Thread.sleep(100); // tiny delay per char — stabilizes dropdown
+        }
 
-    public void chooseProductFromStandardBook(String productName) {
-        logger.info("[chooseProductFromStandardBook] Attempting to select product: {}", productName);
+        logger.info("[chooseProductFromStandardBook] Typed '{}' in product search box.", productName);
 
         try {
-            waitForVisibility(productTable);
-            logger.debug("[chooseProductFromStandardBook] Product table visible.");
+            // Wait for the list to appear
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//ul[contains(@class,'lookup__list')]")));
 
-            productSearchBoxEle.sendKeys(productName);
-            Thread.sleep(1000);
-            logger.info("[chooseProductFromStandardBook] Entered '{}' into search box.", productName);
+            // Scroll if necessary to find your product (some items start as invisible)
+            List<WebElement> allOptions = driver.findElements(
+                    By.xpath("//li[contains(@class,'lookup__item')]//div[contains(@class,'primaryLabel')]")
+            );
 
-            By listBoxLocator=By.xpath("//div[@role='listbox']");
-            logger.debug("[chooseProductFromStandardBook] Waiting for listbox...");
-            waitForVisibility(driver.findElement(listBoxLocator));
-
-            Optional<WebElement> matchedProduct = productDropdown.stream()
-                    .filter(product -> product.getText().trim().equalsIgnoreCase(productName))
-                    .findFirst();
-
-            if (matchedProduct.isPresent()) {
-                WebElement productEle = matchedProduct.get();
-                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", productEle);
-                productEle.click();
-                logger.info("[chooseProductFromStandardBook] ✅ Selected product '{}'", productName);
-            } else {
-                logger.error("[chooseProductFromStandardBook] ❌ Product '{}' not found!", productName);
-                throw new NoSuchElementException("Product not found: " + productName);
+            boolean found = false;
+            for (WebElement option : allOptions) {
+                String text = option.getText().trim();
+                if (text.equalsIgnoreCase(productName)) {
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", option);
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", option);
+                    found = true;
+                    System.out.println("✅ Selected product: " + text);
+                    break;
+                }
             }
-        } catch (Exception e) {
-            logger.error("[chooseProductFromStandardBook] ❌ Failed to select '{}'", productName, e);
-            throw new RuntimeException("Failed to select product: " + productName, e);
+
+            if (!found) {
+                throw new NoSuchElementException("❌ Product not found in list: " + productName);
+            }
+
+        } catch (TimeoutException e) {
+            System.out.println("❌ Lookup list did not appear in time.");
         }
-        waitForVisibility(productCountAddedEle);
     }
+
+
 
     public void clickOnCta(String ctaText) {
         logger.info("[clickOnCta] Attempting to click CTA: {}", ctaText);

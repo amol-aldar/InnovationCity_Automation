@@ -49,11 +49,49 @@ public class HomePage extends ReusableUtil {
         logger.info("[clickNavigationTab] ✅ Clicked '{}'", tabName);
     }*/
 
+    public void clickNavigationTab(String tabName) {
+
+        logger.info("🔍 Attempting to click on navigation tab: {}", tabName);
+
+        // Convert tabName to lowercase for case-insensitive matching
+        String tabLower = tabName.toLowerCase();
+
+        // Robust XPath that works even if Salesforce changes tab structure or text slightly
+        String dynamicTabXpath = String.format(
+                "//a[" +
+                        "(" +
+                        "contains(translate(@href,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'/ %1$s')" +
+                        " or contains(translate(@title,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'%1$s')" +
+                        " or .//span[contains(translate(normalize-space(.),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'%1$s')]" +
+                        ")" +
+                        " and contains(@class,'slds-context-bar__label-action')" +
+                        "]",
+                tabLower
+        );
+
+        try {
+            WebElement tabElement = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(dynamicTabXpath)));
+            tabElement.click();
+            logger.info("✅ Successfully clicked on '{}' tab.", tabName);
+        } catch (Exception e1) {
+            logger.warn("⚠️ Normal click failed on '{}' tab. Trying JS fallback...", tabName);
+            try {
+                WebElement tabElement = driver.findElement(By.xpath(dynamicTabXpath));
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", tabElement);
+                logger.info("✅ JS click successful for '{}' tab.", tabName);
+            } catch (Exception e2) {
+                logger.error("❌ Failed to click on '{}' tab after all attempts: {}", tabName, e2.getMessage());
+                throw e2;
+            }
+        }
+    }
+
+
     /**
      * Clicks on the navigation bar tab such as 'Leads', 'Accounts', etc.
      * Optimized for speed: tries primary + first visible fallback quickly.
      */
-    public void clickNavigationTab(String tabName) throws IOException {
+    /*public void clickNavigationTab(String tabName) throws IOException {
         logger.info("[clickNavigationTab] Clicking navigation tab: {}", tabName);
 
         JsonLocatorReader.load(System.getProperty("user.dir")
@@ -86,7 +124,7 @@ public class HomePage extends ReusableUtil {
             new WebDriverWait(driver, Duration.ofSeconds(5))
                     .until(ExpectedConditions.elementToBeClickable(element)).click();
         }
-    }
+    }*/
 
 
 
