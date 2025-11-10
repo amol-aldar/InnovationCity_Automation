@@ -12,6 +12,8 @@ import org.rakdao.utils.UserGenerator;
 import org.slf4j.Logger;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
+
+import java.awt.*;
 import java.io.IOException;
 
 public class StandardIncorporate extends BaseClass {
@@ -24,7 +26,7 @@ public class StandardIncorporate extends BaseClass {
     SoftAssert softAssert = new SoftAssert();
 
     @Test
-    public void newStandardIncorporate() throws IOException, InterruptedException {
+    public void newStandardIncorporate() throws IOException, InterruptedException, AWTException {
         try {
             log.info("=== 🚀 Starting Standard Incorporate Test ===");
 
@@ -122,12 +124,12 @@ public class StandardIncorporate extends BaseClass {
             portalApplicationPage.clickPortalApplicationCTA("Save As Draft");
             portalApplicationPage.clickPortalApplicationCTA("Let’s Get Started");
             portalApplicationPage.enterBusinessNamePreferences("Ltd");
-//            portalApplicationPage.selectActivityGroup("Artificial Intelligence");
+//          portalApplicationPage.selectActivityGroup("Artificial Intelligence");
             portalApplicationPage.selectBusinessActivity("Blockchain Oracle");
             portalApplicationPage.selectCompanyTypeForCustomer("Company Limited by Shares");
             portalApplicationPage.selectCompany("Limited");
             portalApplicationPage.selectCompanyOwnedBy("Individual Shareholders");
-            portalApplicationPage.selectJurisdictionType("Common Law – DIFC");
+            portalApplicationPage.selectJurisdictionType("Civil Law");
             portalApplicationPage.clickPortalApplicationCTA("Save As Draft");
             portalApplicationPage.clickPortalApplicationCTA("Continue");
 
@@ -140,7 +142,7 @@ public class StandardIncorporate extends BaseClass {
             // 💳 STEP 12: Select Payment Method and Process Payment
             // ============================================================
             portalApplicationPage.selectPaymentMethod("Credit/Debit Card");
-            portalApplicationPage.acceptTermsAndConditions();
+//            portalApplicationPage.acceptTermsAndConditions();
             portalApplicationPage.clickPortalApplicationCTA("Proceed With Payment");
             portalApplicationPage.enterPaymentDetails("41111111111111111", "12/30", "123", "Amol");
 
@@ -198,7 +200,7 @@ public class StandardIncorporate extends BaseClass {
             // ============================================================
             // ✅ STEP 16: Submit Shareholder Details
             // ============================================================
-            Thread.sleep(5000);
+//            Thread.sleep(5000);
             String shareholderSubSucMsg = portalApplicationPage.clickSubmitButton();
             softAssert.assertEquals(shareholderSubSucMsg, "Shareholder’s information saved");
             log.info("✅ Shareholder information submitted successfully.");

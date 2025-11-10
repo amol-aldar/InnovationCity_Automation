@@ -9,6 +9,9 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.rakdao.utils.ReusableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.time.Duration;
 import java.util.List;
 import java.util.Random;
@@ -20,11 +23,13 @@ public class PortalApplicationPage extends ReusableUtil {
     private static final Logger logger = LoggerFactory.getLogger(PortalApplicationPage.class);
     private final WebDriver driver;
     private final Random random = new Random();
+    JavascriptExecutor js;
 
     public PortalApplicationPage(WebDriver driver) {
         super(driver);
         this.driver = driver;
         PageFactory.initElements(driver, this);
+        this.js = (JavascriptExecutor) driver;
         logger.info("✅ PortalApplicationPage initialized successfully with driver: {}", driver);
     }
 
@@ -43,14 +48,15 @@ public class PortalApplicationPage extends ReusableUtil {
     @FindBy(xpath = "//input[contains(@id,'NFT_Wallet_Address')]")
     private WebElement nftWalletAddressEle;
 
-    @FindBy(xpath="//button[.//span[normalize-space()='Continue']]")
+    @FindBy(xpath="(//button[@type='button' and span[normalize-space()='Continue']])[1]")
     private WebElement nameApprovalContinueCta;
 
     @FindBy(xpath="//span[normalize-space()='Wait for name approval']")
     private WebElement nameApprovalWaitCta;
 
-    @FindBy(xpath="//input[@type='checkbox' and @name='tnc']")
-    private WebElement termsCondCheckboxEle;
+    By termsCondCheckboxLocator = By.xpath(
+            "//label[.//span[contains(text(),'I accept the')]]/preceding-sibling::c-dao-input//input[@type='checkbox']"
+    );
 
     //Payment related Locators
     @FindBy(css="input#cardNoInput")
@@ -65,7 +71,7 @@ public class PortalApplicationPage extends ReusableUtil {
     @FindBy(css="input#chNameInput")
     private WebElement paymentCardNameEle;
 
-    @FindBy(css="input#chNameInput")
+    @FindBy(css="#submitBtn")
     private WebElement payButtonEle;
 
 
@@ -283,7 +289,9 @@ public class PortalApplicationPage extends ReusableUtil {
 
     }
 
-    public void selectCompanyOwnedBy(String companyOwnedBy){
+    public void selectCompanyOwnedBy(String companyOwnedBy) throws AWTException, InterruptedException {
+//        zoomOutPage(2);
+
         clickShareholderField("Company Owned By");
 
         By dropdownOption = By.xpath("//li[contains(@class,'dao-input-combo-options')][normalize-space(text())='" + companyOwnedBy + "']");
@@ -311,34 +319,42 @@ public class PortalApplicationPage extends ReusableUtil {
 
     public void shouldWaitNameApproval(String shouldWait) {
         try {
-            if (shouldWait.equalsIgnoreCase("Yes")) {
-                logger.info("🕒 User opted to wait for name approval — clicking 'Wait for name approval' button...");
-                waitForClickability(nameApprovalWaitCta);
-                try {
-                    nameApprovalWaitCta.click();
-                    logger.info("✅ Clicked on 'Wait for name approval' button successfully.");
-                } catch (Exception e) {
-                    logger.warn("⚠️ Normal click failed for 'Wait for name approval'. Trying JS click...");
-                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", nameApprovalWaitCta);
-                    logger.info("✅ JS click succeeded for 'Wait for name approval'.");
+            // Detect modal
+            By modalLocator = By.xpath("//div[contains(@class,'slds-modal__container') and contains(.,'Would you like to continue with the application?')]");
+            boolean isModalVisible = !driver.findElements(modalLocator).isEmpty();
+
+            if (isModalVisible) {
+                logger.info("🔔 Modal detected: 'Would you like to continue with the application?'");
+
+                if (shouldWait.equalsIgnoreCase("Yes")) {
+                    logger.info("🕒 User opted to wait for name approval...");
+                    clickUsingJS(nameApprovalWaitCta);
+                } else {
+                    logger.info("➡️ Proceeding without waiting — clicking 'Continue'...");
+                    clickUsingJS(nameApprovalContinueCta);
                 }
+
             } else {
-                logger.info("➡️ Proceeding without waiting — clicking 'Continue' button...");
-                waitForClickability(nameApprovalContinueCta);
-                try {
-                    nameApprovalContinueCta.click();
-                    logger.info("✅ Clicked on 'Continue' button successfully.");
-                } catch (Exception e) {
-                    logger.warn("⚠️ Normal click failed for 'Continue'. Trying JS click...");
-                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", nameApprovalContinueCta);
-                    logger.info("✅ JS click succeeded for 'Continue' button.");
-                }
+                logger.info("ℹ️ No modal detected — skipping name approval step.");
             }
+
         } catch (Exception e) {
             logger.error("❌ Failed during name approval action (shouldWait={}): {}", shouldWait, e.getMessage());
             throw e;
         }
     }
+
+    private void clickUsingJS(WebElement element) {
+        try {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", element);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+            logger.info("✅ JS click succeeded on element: {}", element);
+        } catch (Exception e) {
+            logger.error("❌ JS click failed: {}", e.getMessage());
+            throw e;
+        }
+    }
+
 
 
 
@@ -388,38 +404,59 @@ public class PortalApplicationPage extends ReusableUtil {
             logger.error("❌ Unexpected error while selecting payment method '{}': {}", paymentType, e.getMessage(), e);
             throw e;
         }
+        By checkboxLocator = By.xpath("//label[contains(., 'Terms')]/preceding::input[@type='checkbox' and @name='tnc'][1]\n");
+        driver.findElement(checkboxLocator).click();
     }
 
-    public void acceptTermsAndConditions() {
 
+
+    public void acceptTermsAndConditions() {
+        logger.info("☑️ Attempting to select the 'Terms & Conditions' checkbox...");
+
+        By checkboxLocator = By.xpath("//label[contains(., 'Terms')]/preceding::input[@type='checkbox' and @name='tnc'][1]\n");
 
         try {
-            logger.info("☑️ Attempting to select 'Terms & Conditions' checkbox...");
 
-            waitForVisibility(termsCondCheckboxEle);
+            // Step 1: Wait for checkbox visibility
+            WebElement checkbox = wait.until(ExpectedConditions.visibilityOfElementLocated(checkboxLocator));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", checkbox);
+            wait.until(ExpectedConditions.elementToBeClickable(checkbox));
 
-            if (!termsCondCheckboxEle.isSelected()) {
-                try {
-                    termsCondCheckboxEle.click();
-                    logger.info("✅ 'Terms & Conditions' checkbox clicked successfully.");
-                } catch (Exception e) {
-                    logger.warn("⚠️ Normal click failed on T&C checkbox, retrying with JS click: {}", e.getMessage());
-                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", termsCondCheckboxEle);
-                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", termsCondCheckboxEle);
-                    logger.info("✅ JS click succeeded for 'Terms & Conditions' checkbox.");
-                }
-            } else {
-                logger.info("ℹ️ 'Terms & Conditions' checkbox is already selected — skipping click.");
+            // Step 2: Try normal click first
+            try {
+                checkbox.click();
+                logger.info("✅ Checkbox clicked successfully (normal click).");
+                return;
+            } catch (ElementClickInterceptedException e) {
+                logger.warn("⚠️ Normal click intercepted, attempting JS click...");
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", checkbox);
+                logger.info("✅ Checkbox clicked successfully via JS.");
+                return;
             }
 
         } catch (TimeoutException te) {
-            logger.error("❌ 'Terms & Conditions' checkbox not found on the page within timeout.");
-            throw te;
+            logger.error("❌ Checkbox not visible or clickable within timeout. Refreshing and retrying...");
+            driver.navigate().refresh();
+
+            try {
+                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+                WebElement checkbox = wait.until(ExpectedConditions.visibilityOfElementLocated(checkboxLocator));
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", checkbox);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", checkbox);
+                logger.info("✅ Checkbox clicked successfully after refresh via JS.");
+            } catch (Exception retryEx) {
+                logger.error("❌ Failed to click checkbox even after refresh: {}", retryEx.getMessage());
+                throw new RuntimeException("Failed to select Terms & Conditions checkbox.", retryEx);
+            }
+
         } catch (Exception e) {
-            logger.error("❌ Unexpected error while selecting T&C checkbox: {}", e.getMessage(), e);
+            logger.error("❌ Unexpected error while selecting checkbox: {}", e.getMessage());
             throw e;
         }
     }
+
+
+
 
     public void enterPaymentDetails(String cardNumber, String expiryDate, String cvv, String cardHolderName) {
         logger.info("💳 Starting to enter payment details...");
@@ -796,14 +833,93 @@ public class PortalApplicationPage extends ReusableUtil {
 
 
 
-    public void clickShareholderField(String fieldName){
-        // XPath to get the button above the label
-        String xpath = String.format("//label[text()='%s']/preceding-sibling::button", fieldName);
-        scrollToElement(driver.findElement(By.xpath(xpath)));
-        WebElement button = driver.findElement(By.xpath(xpath));
+//    public void clickShareholderField(String fieldName){
+//        // XPath to get the button above the label
+//        String xpath = String.format("//label[text()='%s']/preceding-sibling::button", fieldName);
+//        WebElement element=driver.findElement(By.xpath(xpath));
+//        waitForVisibility(element);
+//        scrollToElement(element);
+//        waitForClickability(element);
+//        element.click();
+//    }
 
-        button.click();
+//    public void clickShareholderField(String fieldName) {
+//        String xpath = String.format("//label[normalize-space(text())='%s']/preceding-sibling::button", fieldName);
+//        logger.info("🔍 Trying to click the Shareholder button for label: '{}'", fieldName);
+//
+//        try {
+//            WebElement element = driver.findElement(By.xpath(xpath));
+//            waitForVisibility(element);
+//            scrollToElement(element);
+//            waitForClickability(element);
+//
+//            try {
+//                element.click();
+//                logger.info("✅ Clicked '{}' button successfully.", fieldName);
+//            } catch (Exception e) {
+//                logger.warn("⚠️ Normal click failed for '{}'. Trying JavaScript click...", fieldName);
+//                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+//                logger.info("✅ JavaScript click succeeded for '{}'.", fieldName);
+//            }
+//        } catch (Exception e) {
+//            logger.error("❌ Failed to click Shareholder button for '{}'. XPath: {}", fieldName, xpath, e);
+//            throw e;
+//        }
+//    }
+
+    public void clickShareholderField(String fieldName) {
+        String xpath = String.format("//label[normalize-space(text())='%s']/preceding-sibling::button", fieldName);
+        logger.info("🔍 Attempting to click the Shareholder field button for label: '{}'", fieldName);
+
+
+
+
+        for (int attempt = 1; attempt <= 2; attempt++) { // attempt 1 = normal, attempt 2 = after refresh
+            try {
+                logger.info("➡️ Attempt {} to locate and click '{}'", attempt, fieldName);
+
+                // Try locating element
+                WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpath)));
+
+                // Wait for visibility and clickability
+                wait.until(ExpectedConditions.visibilityOf(element));
+                js.executeScript("arguments[0].scrollIntoView({block:'center'});", element);
+                wait.until(ExpectedConditions.elementToBeClickable(element));
+
+                try {
+                    element.click();
+                    logger.info("✅ Normal click succeeded for '{}'", fieldName);
+                    return; // success, exit method
+                } catch (Exception e1) {
+                    logger.warn("⚠️ Normal click failed for '{}'. Trying JS click...", fieldName);
+                    js.executeScript("arguments[0].click();", element);
+                    logger.info("✅ JavaScript click succeeded for '{}'", fieldName);
+                    return;
+                }
+
+            } catch (Exception e) {
+                logger.error("⚠️ Attempt {} failed to locate/click '{}'.", attempt, fieldName, e);
+
+                // If first attempt fails, refresh once and retry
+                if (attempt == 1) {
+                    logger.info("🔄 Refreshing page and retrying click for '{}'", fieldName);
+                    driver.navigate().refresh();
+
+                    // Wait for page to reload fully before retry
+                    try {
+                        new WebDriverWait(driver, Duration.ofSeconds(10))
+                                .until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpath)));
+                    } catch (Exception ignored) {
+                        logger.warn("⏳ Element '{}' not immediately visible after refresh. Will retry.", fieldName);
+                    }
+                } else {
+                    logger.error("❌ Failed to click '{}' even after refresh.", fieldName, e);
+                    throw new RuntimeException("Failed to click Shareholder button for: " + fieldName, e);
+                }
+            }
+        }
     }
+
 
     public void enterDateOfBirth() {
         String dob = getRandomDate("DOB");

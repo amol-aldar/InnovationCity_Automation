@@ -281,7 +281,7 @@ public class OpportunityPage extends ReusableUtil {
             logger.error("[clickEditProductModalCta] ❌ Failed to click CTA '{}'", ctaText, e);
             throw new RuntimeException("Failed to click CTA: " + ctaText, e);
         }
-        waitForInvisibility(spinner);
+//        waitForInvisibility(spinner);
     }
 
 //    public void clickAddInventoryButton() {
@@ -311,50 +311,62 @@ public class OpportunityPage extends ReusableUtil {
 //    }
 
     public void clickAddInventoryButton() {
-        logger.info("[clickAddInventoryButton] Attempting to click 'Add Inventory'...");
+        logger.info("[clickAddInventoryButton] 🟡 Attempting to click 'Add Inventory' quickly and safely...");
+        driver.navigate().refresh();
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        Actions actions = new Actions(driver);
 
         try {
-            // Step 1: Try normal click first
-            scrollToElement(addInventoryEle);
-            waitForClickability(addInventoryEle);
+            // Short, direct wait (reduce default 15–20s to 5s)
 
+            wait.until(ExpectedConditions.visibilityOf(addInventoryEle));
+            wait.until(ExpectedConditions.elementToBeClickable(addInventoryEle));
+
+            // Scroll slightly into view for reliability
+            js.executeScript("arguments[0].scrollIntoView({block:'center'});", addInventoryEle);
+
+            // Try a fast Actions-based click first (bypasses overlays)
             try {
-                addInventoryEle.click();
-                logger.info("[clickAddInventoryButton] ✅ Normal click succeeded.");
-                return; // Success, exit early
-            } catch (ElementClickInterceptedException e) {
-                logger.warn("[clickAddInventoryButton] Normal click intercepted, trying JS click...");
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addInventoryEle);
-                logger.info("[clickAddInventoryButton] ✅ JS click succeeded on first attempt.");
+                actions.moveToElement(addInventoryEle).pause(Duration.ofMillis(200)).click().perform();
+                logger.info("[clickAddInventoryButton] ✅ Clicked using Actions.");
                 return;
+            } catch (Exception e) {
+                logger.warn("[clickAddInventoryButton] ⚠️ Actions click failed, trying JS click...", e);
             }
 
-        } catch (Exception firstAttemptEx) {
-            logger.warn("[clickAddInventoryButton] First attempt failed, refreshing page and retrying...", firstAttemptEx);
-        }
+            // Fallback 1: JS click (instant)
+            try {
+                js.executeScript("arguments[0].click();", addInventoryEle);
+                logger.info("[clickAddInventoryButton] ✅ Clicked using JavaScript.");
+                return;
+            } catch (Exception e) {
+                logger.warn("[clickAddInventoryButton] ⚠️ JS click failed, trying normal click...", e);
+            }
 
-        // Step 2: Refresh and retry if first attempt failed
-        try {
-            driver.navigate().refresh();
-            logger.info("[clickAddInventoryButton] Page refreshed, retrying click...");
-
-            scrollToElement(addInventoryEle);
-            waitForClickability(addInventoryEle);
-
+            // Fallback 2: Normal Selenium click (if still accessible)
             try {
                 addInventoryEle.click();
-                logger.info("[clickAddInventoryButton] ✅ Normal click succeeded after refresh.");
-            } catch (ElementClickInterceptedException e2) {
-                logger.warn("[clickAddInventoryButton] Second normal click intercepted, retrying JS...");
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addInventoryEle);
-                logger.info("[clickAddInventoryButton] ✅ JS click succeeded after refresh.");
+                logger.info("[clickAddInventoryButton] ✅ Clicked using WebDriver.");
+                return;
+            } catch (Exception e) {
+                logger.warn("[clickAddInventoryButton] ❌ Normal click failed too, will refresh page and retry once.", e);
             }
 
-        } catch (Exception finalEx) {
-            logger.error("[clickAddInventoryButton] ❌ Click failed even after refresh.", finalEx);
-            throw new RuntimeException("Failed to click 'Add Inventory' even after refresh.", finalEx);
+            // Only refresh if all click methods fail
+            driver.navigate().refresh();
+            logger.info("[clickAddInventoryButton] 🔄 Page refreshed, retrying click once...");
+
+            wait.until(ExpectedConditions.visibilityOf(addInventoryEle));
+            js.executeScript("arguments[0].scrollIntoView({block:'center'});", addInventoryEle);
+            js.executeScript("arguments[0].click();", addInventoryEle);
+            logger.info("[clickAddInventoryButton] ✅ Click succeeded after refresh.");
+
+        } catch (Exception e) {
+            logger.error("[clickAddInventoryButton] ❌ Click failed even after fallback attempts.", e);
+            throw new RuntimeException("Failed to click 'Add Inventory' button.", e);
         }
     }
+
 
 
     private void selectDropdownValue(WebElement dropdown, String value) {

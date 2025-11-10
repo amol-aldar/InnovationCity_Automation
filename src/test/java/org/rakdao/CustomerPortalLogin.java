@@ -8,6 +8,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.rakdao.pageObjects.portal.DocumentUploadPage;
 import org.rakdao.pageObjects.portal.PortalApplicationPage;
 import org.rakdao.pageObjects.portal.PortalHomePage;
+import org.rakdao.utils.ReusableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
@@ -19,13 +20,17 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.time.Duration;
 
-public class CustomerPortalLogin {
+public class CustomerPortalLogin extends ReusableUtil {
 
     private WebDriver driver;
     private static final String PORTAL_URL = "https://innovationcity--staging.sandbox.my.site.com/s/login/";
     private static final String USERNAME = "a.aldar+1457@innovationcity.com.innovationcity";
     private static final String PASSWORD = "Rakdao@123";
     private static final Logger logger = LoggerFactory.getLogger(CustomerPortalLogin.class);
+
+    public CustomerPortalLogin(WebDriver driver) {
+        super(driver);
+    }
 
     @BeforeClass
     public void setup() throws Exception {
@@ -39,24 +44,10 @@ public class CustomerPortalLogin {
         driver.manage().window().maximize();
         driver.get(PORTAL_URL);
 
-        // 🔍 Zoom out while maximized
-        zoomOutPage(4);
+
     }
 
-    public void zoomOutPage(int times) {
-        try {
-            Robot robot = new Robot();
-            for (int i = 0; i < times; i++) {
-                robot.keyPress(KeyEvent.VK_CONTROL);
-                robot.keyPress(KeyEvent.VK_MINUS);
-                robot.keyRelease(KeyEvent.VK_MINUS);
-                robot.keyRelease(KeyEvent.VK_CONTROL);
-                Thread.sleep(300);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+
 
 
     @Test
@@ -73,31 +64,36 @@ public class CustomerPortalLogin {
         // ✅ Page Object actions
         PortalHomePage portalHomePage = new PortalHomePage(driver);
         PortalApplicationPage portalApplicationPage = portalHomePage.clickContinueWithApplication();
-
+// 🔍 Zoom out while maximized
+            zoomOutPage(4);
         // ============================================================
         // 🧭 STEP 10: Fill Business Information in Portal
         // ============================================================
-        portalApplicationPage.clickPortalApplicationCTA("Save As Draft");
-        portalApplicationPage.clickPortalApplicationCTA("Let’s Get Started");
-        portalApplicationPage.enterBusinessNamePreferences("Ltd");
-//            portalApplicationPage.selectActivityGroup("Artificial Intelligence");
-        portalApplicationPage.selectBusinessActivity("Blockchain Oracle");
-        portalApplicationPage.selectCompanyTypeForCustomer("Company Limited by Shares");
-        portalApplicationPage.selectCompany("Limited");
-        portalApplicationPage.selectCompanyOwnedBy("Individual Shareholders");
-        portalApplicationPage.selectJurisdictionType("Common Law – DIFC");
-        portalApplicationPage.clickPortalApplicationCTA("Save As Draft");
-        portalApplicationPage.clickPortalApplicationCTA("Continue");
+//        portalApplicationPage.clickPortalApplicationCTA("Save As Draft");
+//        portalApplicationPage.clickPortalApplicationCTA("Let’s Get Started");
+//        portalApplicationPage.enterBusinessNamePreferences("Ltd");
+//        portalApplicationPage.selectActivityGroup("Artificial Intelligence");
+//            portalApplicationPage.selectJurisdictionType("Common Law – DIFC");
+//        portalApplicationPage.selectBusinessActivity("Blockchain Oracle");
+//            portalApplicationPage.selectCompanyOwnedBy("Individual Shareholders");
+//        portalApplicationPage.selectCompanyTypeForCustomer("Company Limited by Shares");
+//        portalApplicationPage.selectCompany("Limited");
+//        portalApplicationPage.selectCompanyOwnedBy("Individual Shareholders");
+//        portalApplicationPage.selectJurisdictionType("Common Law – DIFC");
+//        portalApplicationPage.clickPortalApplicationCTA("Save As Draft");
+//        portalApplicationPage.clickPortalApplicationCTA("Continue");
 
         // ============================================================
         // 🕒 STEP 11: Handle Name Approval (Dynamic)
         // ============================================================
-        portalApplicationPage.shouldWaitNameApproval("No");
+//        portalApplicationPage.shouldWaitNameApproval("No");
 
         // ============================================================
         // 💳 STEP 12: Select Payment Method and Process Payment
         // ============================================================
         portalApplicationPage.selectPaymentMethod("Credit/Debit Card");
+        Thread.sleep(3000);
+//            portalApplicationPage.selectPaymentMethod("Wire Transfer");
         portalApplicationPage.acceptTermsAndConditions();
         portalApplicationPage.clickPortalApplicationCTA("Proceed With Payment");
         portalApplicationPage.enterPaymentDetails("41111111111111111", "12/30", "123", "Amol");

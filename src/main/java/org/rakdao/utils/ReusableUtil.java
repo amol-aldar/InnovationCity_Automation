@@ -7,6 +7,8 @@ import org.rakdao.pageObjects.BasePage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -331,6 +333,21 @@ public class ReusableUtil {
             sb.append(randomChar);
         }
         return sb.toString();
+    }
+
+    public void zoomOutPage(int times) {
+        try {
+            Robot robot = new Robot();
+            for (int i = 0; i < times; i++) {
+                robot.keyPress(KeyEvent.VK_CONTROL);
+                robot.keyPress(KeyEvent.VK_MINUS);
+                robot.keyRelease(KeyEvent.VK_MINUS);
+                robot.keyRelease(KeyEvent.VK_CONTROL);
+                Thread.sleep(300);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
