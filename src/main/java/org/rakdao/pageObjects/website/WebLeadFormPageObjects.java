@@ -13,6 +13,7 @@ import org.rakdao.utils.WriteToExcel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.time.Duration;
 import java.util.List;
 
@@ -53,7 +54,7 @@ public class WebLeadFormPageObjects extends ReusableUtil {
     private WebElement getStartedButtonEle;
 
     // ====== Constructor ======
-    public WebLeadFormPageObjects(WebDriver driver) {
+    public WebLeadFormPageObjects(WebDriver driver) throws AWTException {
         super(driver);
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));

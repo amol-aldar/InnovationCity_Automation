@@ -18,65 +18,57 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 
 public class Agent extends BaseClass {
+
     private static final Logger log = LoggerUtil.getLogger(Agent.class);
 
     private LoginPage loginPage;
     private HomePage homePage;
     private LeadPage leadPage;
     private OpportunityPage opportunityPage;
-    SoftAssert softAssert= new SoftAssert();
-    public void zoomOutPage(int times) {
-        try {
-            Robot robot = new Robot();
-            for (int i = 0; i < times; i++) {
-                robot.keyPress(KeyEvent.VK_CONTROL);
-                robot.keyPress(KeyEvent.VK_MINUS);
-                robot.keyRelease(KeyEvent.VK_MINUS);
-                robot.keyRelease(KeyEvent.VK_CONTROL);
-                Thread.sleep(300);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
-    public void zoomInPage(int times) {
-        try {
-            Robot robot = new Robot();
-            for (int i = 0; i < times; i++) {
-                robot.keyPress(KeyEvent.VK_CONTROL);
-                robot.keyPress(KeyEvent.VK_PLUS);
-                robot.keyRelease(KeyEvent.VK_PLUS);
-                robot.keyRelease(KeyEvent.VK_CONTROL);
-                Thread.sleep(300);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    SoftAssert softAssert = new SoftAssert();
+
+
+
+    // ==========================================
+    // 🧪 Main Test: Agent Onboarding Flow
+    // ==========================================
     @Test
-    public void AgentOnboarding() throws IOException, InterruptedException {
+    public void AgentOnboarding() throws IOException, InterruptedException, AWTException {
         try {
-            log.info("=== 🚀 Starting Standard Incorporate Test ===");
+            log.info("=== 🚀 Starting Agent Onboarding Test ===");
 
-            // 🧩 Generate random test data
+            // -------------------------------------------------
+            // 🧩 STEP 1: Generate Test Data
+            // -------------------------------------------------
+            log.info("🔧 Generating test data...");
             User user = UserGenerator.generateUser();
-            log.info("Generated test user: {} {}", user.getFirstName(), user.getLastName());
+            log.info("✅ Test user generated: {} {}", user.getFirstName(), user.getLastName());
 
-            // 🔐 Login
+            // -------------------------------------------------
+            // 🔐 STEP 2: Login to Salesforce
+            // -------------------------------------------------
+            log.info("🔐 Logging into Salesforce...");
             loginPage = new LoginPage(driver);
             loginPage.enterUsername(ConfigReader.get("adminUserName"));
             loginPage.enterPassword(ConfigReader.get("adminPassword"));
             loginPage.clickLogin();
-            log.info("✅ Login successful.");
+            log.info("✅ Successfully logged into Salesforce.");
 
-            // 🏠 Navigate to Leads tab
+            // -------------------------------------------------
+            // 🏠 STEP 3: Navigate to Leads and Create New Lead
+            // -------------------------------------------------
+            log.info("🧭 Navigating to Leads tab...");
             homePage = new HomePage(driver);
-            homePage.clickNavigationTab("leads");  // from NavigationBar.json
-            homePage.clickNewLeadButton();                // opens Lead modal
-            leadPage = homePage.goToLeadPage();     // switch control to LeadPage
+            homePage.clickNavigationTab("leads");
+            homePage.clickNewLeadButton();
+            leadPage = homePage.goToLeadPage();
+            log.info("✅ Opened new Lead creation form.");
 
-            // 🧾 Lead creation steps
+            // -------------------------------------------------
+            // 🧾 STEP 4: Enter Lead Details
+            // -------------------------------------------------
+            log.info("✍️ Entering lead details...");
             leadPage.selectRecordType("Channel Partner");
             leadPage.clickNext("Next");
             leadPage.enterLeadDetails(
@@ -86,46 +78,63 @@ public class Agent extends BaseClass {
                     user.getEmail(),
                     user.getMobile()
             );
-
             leadPage.selectNationality("India");
-            leadPage.selectRoleDetailsCheckbox("CSP", true);               // ✅ checks CSP
-            leadPage.selectRoleDetailsCheckbox("Referral Partner", true);  // ✅ checks it
-            leadPage.selectRoleDetailsCheckbox("Referral Sponsor", false); // ✅ unchecks it
-
+            leadPage.selectRoleDetailsCheckbox("CSP", true);
+            leadPage.selectRoleDetailsCheckbox("Referral Partner", true);
+            leadPage.selectRoleDetailsCheckbox("Referral Sponsor", false);
             leadPage.clickRibbonCta("Save");
-            log.info("✅ Lead details entered and saved.");
+            log.info("✅ Lead details saved successfully.");
 
+            // -------------------------------------------------
+            // 🔄 STEP 5: Convert Lead to Opportunity
+            // -------------------------------------------------
+            log.info("🔄 Converting lead to opportunity...");
             leadPage.convertLeadToOpportunity("Converted");
             leadPage.clickMarkStageComplete();
-            // 🔄 Convert Lead → Opportunity
-            leadPage.handleLeadConversionSection("Account");// Selects “Create New Account” + “Channel Partner”
-            leadPage.handleLeadConversionSection("Opportunity");  // Selects “Create New Opportunity” + “Agent Onboarding”
+            leadPage.handleLeadConversionSection("Account");
+            leadPage.handleLeadConversionSection("Opportunity");
             Thread.sleep(2000);
             leadPage.clickLeadModalCta("Convert");
             log.info("✅ Lead converted successfully.");
 
-
-            // 💼 Open opportunity and continue
+            // -------------------------------------------------
+            // 💼 STEP 6: Open Opportunity and Progress Stage
+            // -------------------------------------------------
+            log.info("💼 Opening converted Opportunity...");
             Thread.sleep(2000);
             opportunityPage = leadPage.goToAccountContactOpportunity("Opportunity");
-
-
-            // 🏁 Opportunity closure
             opportunityPage.clickOpportunityStage("Developing");
-            String successMsgText=opportunityPage.clickOpportunityCompleteButton();
-            softAssert.assertEquals(successMsgText,"Stage changed successfully.");
-            log.info("✅ Opportunity closing successfully ");
-            ContactPage contactPage=opportunityPage.goToContactOrAccount("Primary Contact");
-            PortalHomePage portalHomePage=contactPage.goToPortal();
-            PortalApplicationPage portalApplicationPage=portalHomePage.clickStartNowButton();
-//            zoomInPage(2);
+            String successMsgText = opportunityPage.clickOpportunityCompleteButton();
+            softAssert.assertEquals(successMsgText, "Stage changed successfully.");
+            log.info("✅ Opportunity stage progressed successfully.");
+
+            // -------------------------------------------------
+            // 👤 STEP 7: Navigate to Contact → Portal Access
+            // -------------------------------------------------
+            log.info("👤 Navigating to Primary Contact portal access...");
+            ContactPage contactPage = opportunityPage.goToContactOrAccount("Primary Contact");
+            PortalHomePage portalHomePage = contactPage.goToPortal();
+            PortalApplicationPage portalApplicationPage = portalHomePage.clickStartNowButton();
+            log.info("✅ Portal launched successfully.");
+
+            // -------------------------------------------------
+            // 🏢 STEP 8: Fill Company & Bank Details
+            // -------------------------------------------------
+            log.info("🏢 Filling company and bank details...");
             portalApplicationPage.fillCompanyDetails("India", "Company Limited by Shares");
             portalApplicationPage.fillBankDetails();
             portalApplicationPage.clickPortalApplicationCTA("Save As Draft");
             portalApplicationPage.clickPortalApplicationCTA("Continue");
+            log.info("✅ Company and bank details saved.");
+
+            // -------------------------------------------------
+            // 👥 STEP 9: Add Shareholder Details
+            // -------------------------------------------------
+            log.info("👥 Adding shareholder details...");
             portalApplicationPage.enterNumberOfShares();
             portalApplicationPage.enterShareValue();
             portalApplicationPage.clickAddShareholder("Individual");
+
             portalApplicationPage.enterShareholderFname();
             portalApplicationPage.enterShareholderLname();
             portalApplicationPage.selectGender("Male");
@@ -138,11 +147,23 @@ public class Agent extends BaseClass {
             portalApplicationPage.enterPassportExpiryDate();
             portalApplicationPage.selectPassportIssueCountry("India");
             portalApplicationPage.clickProceedButton();
+            log.info("✅ Shareholder personal details completed.");
+
+            // -------------------------------------------------
+            // 🛂 STEP 10: Visa and Contact Information
+            // -------------------------------------------------
+            log.info("🛂 Entering visa and contact information...");
             portalApplicationPage.selectVisaType("No UAE Visa");
             portalApplicationPage.clickProceedButton();
             portalApplicationPage.enterShareholderPrimaryEmail("Primary Email");
             portalApplicationPage.enterShareholderPrimaryMobileNum("Primary Phone");
             portalApplicationPage.clickProceedButton();
+            log.info("✅ Contact information entered.");
+
+            // -------------------------------------------------
+            // 🏠 STEP 11: Residential Address
+            // -------------------------------------------------
+            log.info("🏠 Filling residential address...");
             portalApplicationPage.selectResidentialCountry("India");
             portalApplicationPage.selectResidentialProvince("Maharashtra");
             portalApplicationPage.enterResidentialBuildingName();
@@ -154,6 +175,12 @@ public class Agent extends BaseClass {
             portalApplicationPage.selectYearsLiving();
             portalApplicationPage.selectResidentialAddressCheckbox();
             portalApplicationPage.clickProceedButton();
+            log.info("✅ Residential details saved.");
+
+            // -------------------------------------------------
+            // 🧾 STEP 12: Ownership & Roles
+            // -------------------------------------------------
+            log.info("🧾 Selecting ownership and role details...");
             portalApplicationPage.selectUBOCheckbox();
             portalApplicationPage.selectVotingRightCheckbox();
             portalApplicationPage.selectManagerCheckbox();
@@ -161,20 +188,29 @@ public class Agent extends BaseClass {
             portalApplicationPage.selectAuthorizedSignatoryCheckbox();
             portalApplicationPage.selectNatureOfOwnership("As a Nominee");
             portalApplicationPage.enterOwnedShares();
-            Thread.sleep(5000);
+            Thread.sleep(2000);
             portalApplicationPage.clickSubmitButton();
-            DocumentUploadPage documentUploadPage= new DocumentUploadPage(driver);
+            log.info("✅ Ownership and role section submitted.");
+
+            // -------------------------------------------------
+            // 📄 STEP 13: Document Upload & Final Submission
+            // -------------------------------------------------
+            log.info("📄 Uploading required documents...");
+            DocumentUploadPage documentUploadPage = new DocumentUploadPage(driver);
             documentUploadPage.uploadDocumentsSequentially();
             portalApplicationPage.clickPortalApplicationCTA("Continue");
             documentUploadPage.clickAttentionDialogCTA("OKAY");
-            softAssert.assertAll();
+            log.info("✅ Document upload completed successfully.");
 
+            // -------------------------------------------------
+            // ✅ STEP 14: Assertions & Wrap-up
+            // -------------------------------------------------
+            softAssert.assertAll();
+            log.info("🎯 Test completed successfully: Agent Onboarding flow passed.");
 
         } catch (Exception e) {
             log.error("❌ Test failed due to unexpected error.", e);
             throw e;
         }
     }
-
-
 }

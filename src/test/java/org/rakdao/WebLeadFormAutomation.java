@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
+import java.awt.*;
 import java.time.Duration;
 
 public class WebLeadFormAutomation {
@@ -28,7 +29,7 @@ public class WebLeadFormAutomation {
     }
 
     @Test(dataProvider = "urls")
-    public void leadFormTest(String url) {
+    public void leadFormTest(String url) throws AWTException {
         User user = UserGenerator.generateUser();
         logger.info("🌐 Starting lead submission for URL: {}", url);
 

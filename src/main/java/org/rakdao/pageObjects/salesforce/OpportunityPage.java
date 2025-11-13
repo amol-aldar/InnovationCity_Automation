@@ -12,8 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.asserts.SoftAssert;
 
+import java.awt.*;
 import java.time.Duration;
 import java.util.*;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 public class OpportunityPage extends ReusableUtil {
@@ -22,7 +24,7 @@ public class OpportunityPage extends ReusableUtil {
     private static final Logger logger = LoggerFactory.getLogger(OpportunityPage.class);
     SoftAssert softAssert = new SoftAssert();
 
-    public OpportunityPage(WebDriver driver) {
+    public OpportunityPage(WebDriver driver) throws AWTException {
         super(driver);
         this.driver = driver;
         PageFactory.initElements(driver, this);
@@ -598,7 +600,7 @@ public class OpportunityPage extends ReusableUtil {
 //        return new ContactPage(driver);
 //    }
 
-    public ContactPage goToContactOrAccount(String headerLabel) {
+    public ContactPage goToContactOrAccount(String headerLabel) throws AWTException {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));
         JavascriptExecutor js = (JavascriptExecutor) driver;
         Actions actions = new Actions(driver);

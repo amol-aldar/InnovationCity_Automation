@@ -30,7 +30,7 @@ public class DocumentUploadPage {
     /**
      * Upload a fixed document using AutoIT
      */
-    public void uploadDocumentsSequentially() throws InterruptedException {
+    /*public void uploadDocumentsSequentially() throws InterruptedException {
         logger.info("Number of document containers found: {}", documentContainers.size());
 
         for (WebElement doc : documentContainers) {
@@ -91,7 +91,93 @@ public class DocumentUploadPage {
                 logger.error("❌ Error uploading document: {}", e.getMessage());
             }
         }
+    }*/
+
+    public void uploadDocumentsSequentially() throws InterruptedException {
+        logger.info("📄 Number of document containers found: {}", documentContainers.size());
+
+        for (WebElement doc : documentContainers) {
+            try {
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", doc);
+
+                WebElement nameElement = doc.findElement(By.xpath(
+                        ".//*[starts-with(name(), 'lightning-layout-item') and contains(@class,'dao-doc-name')]"));
+                wait.until(ExpectedConditions.visibilityOf(nameElement));
+
+                String docName = nameElement.getText().trim();
+                logger.info("🧾 Processing document: {}", docName);
+
+                // Expand if collapsed
+                try {
+                    nameElement.click();
+                } catch (WebDriverException e) {
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", nameElement);
+                }
+
+                // Upload buttons inside this specific document
+                List<WebElement> uploadLabels = doc.findElements(By.xpath(
+                        ".//label[contains(@for,'fileInput') and .//span[normalize-space()='upload']]"
+                ));
+                logger.info("📎 Found {} upload button(s) for {}", uploadLabels.size(), docName);
+
+                // --- Special handling for Emirates ID ---
+                if (docName.toLowerCase().contains("emirates id") && uploadLabels.size() >= 2) {
+                    logger.info("🪪 Detected Emirates ID — uploading Front and Back sequentially.");
+
+                    // Upload FRONT
+                    uploadFileWithWait(uploadLabels.get(0), doc, docName + " - Front");
+
+                    // Upload BACK (wait until first upload completes)
+                    uploadFileWithWait(uploadLabels.get(1), doc, docName + " - Back");
+                } else {
+                    // Normal document flow (one upload button)
+                    for (int i = 0; i < uploadLabels.size(); i++) {
+                        uploadFileWithWait(uploadLabels.get(i), doc, docName + " [#" + (i + 1) + "]");
+                    }
+                }
+
+            } catch (Exception e) {
+                logger.error("❌ Error uploading document: {}", e.getMessage());
+            }
+        }
     }
+
+    private void uploadFileWithWait(WebElement uploadLabel, WebElement doc, String fileDescription)
+            throws InterruptedException {
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(uploadLabel));
+
+            // Click normally or via JS
+            try {
+                uploadLabel.click();
+            } catch (Exception e) {
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", uploadLabel);
+            }
+
+            logger.info("🖱️ Clicked upload button for {}", fileDescription);
+
+            // Run AutoIT upload
+            Runtime.getRuntime().exec(new String[]{
+                    "C:\\Users\\Amol Aldar\\Desktop\\FilesUpload\\FileUploadScript.exe"
+            });
+
+            // Wait for upload confirmation
+            WebElement successMsg = new WebDriverWait(driver, Duration.ofSeconds(20))
+                    .until(ExpectedConditions.visibilityOfElementLocated(
+                            By.xpath(".//p[text()='Successfully Uploaded']")
+                    ));
+
+            if (successMsg.isDisplayed()) {
+                logger.info("✅ File uploaded successfully for {}", fileDescription);
+            }
+
+            Thread.sleep(1000); // Small gap before next upload (UI sync)
+
+        } catch (Exception e) {
+            logger.error("⚠️ Failed to upload {}: {}", fileDescription, e.getMessage());
+        }
+    }
+
 
     public void clickAttentionDialogCTA(String buttonLabel) {
         By buttonLocator = By.xpath(String.format("//button[.//span[normalize-space()='%s']]", buttonLabel));

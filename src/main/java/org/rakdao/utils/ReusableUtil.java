@@ -20,13 +20,15 @@ public class ReusableUtil {
     protected WebDriver driver;
     protected WebDriverWait wait;
     private static final Logger logger = LoggerFactory.getLogger(ReusableUtil.class);
+    Robot robot;
 
     @FindBy(xpath="//lightning-spinner[@alternative-text='Loading']")
     protected WebElement spinner;
 
-    public ReusableUtil(WebDriver driver) {
+    public ReusableUtil(WebDriver driver) throws AWTException {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        this.robot = new Robot();
     }
 
     public void scrollDownByPixel(int pixels) {
@@ -214,7 +216,23 @@ public class ReusableUtil {
         }
     }
 
-    // Generates random date strings (yyyy-MM-dd) depending on type.
+    public void safeClickWithJSFallback(WebElement element, String elementName) {
+        try {
+            waitForClickability(element);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", element);
+            element.click();
+            logger.info("✅ Clicked on '{}'", elementName);
+        } catch (ElementClickInterceptedException e) {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+            logger.info("✅ JS click successful on '{}'", elementName);
+        } catch (Exception e) {
+            logger.error("❌ Failed to click '{}': {}", elementName, e.getMessage());
+            throw e;
+        }
+    }
+
+
+    // Generates random date strings (dd-MM-yyyy) depending on type.
     protected String getRandomDate(String type) {
         Random random = new Random();
         LocalDate randomDate;
@@ -224,9 +242,11 @@ public class ReusableUtil {
                 // Between 1970 and 2007
                 int startYearDOB = 1970;
                 int endYearDOB = 2007;
-                randomDate = LocalDate.of(startYearDOB + random.nextInt(endYearDOB - startYearDOB + 1),
+                randomDate = LocalDate.of(
+                        startYearDOB + random.nextInt(endYearDOB - startYearDOB + 1),
                         1 + random.nextInt(12),
-                        1 + random.nextInt(28));
+                        1 + random.nextInt(28)
+                );
                 break;
 
             case "ISSUE":
@@ -236,7 +256,8 @@ public class ReusableUtil {
 
             case "EXPIRY":
                 // 5–10 years in the future
-                randomDate = LocalDate.now().plusDays(365 * (5 + random.nextInt(5)))
+                randomDate = LocalDate.now()
+                        .plusDays(365 * (5 + random.nextInt(5)))
                         .withDayOfMonth(1 + random.nextInt(28));
                 break;
 
@@ -245,8 +266,10 @@ public class ReusableUtil {
                 break;
         }
 
-        return randomDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        // ✅ Format: day-month-year (e.g., 12-11-2025)
+        return randomDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
     }
+
 
     public void selectDate(WebElement dateField, String dateValue, String fieldName) {
 
@@ -335,9 +358,12 @@ public class ReusableUtil {
         return sb.toString();
     }
 
+    // ==========================================
+    // 🔍 Utility Methods - Zoom Controls
+    // ==========================================
     public void zoomOutPage(int times) {
         try {
-            Robot robot = new Robot();
+
             for (int i = 0; i < times; i++) {
                 robot.keyPress(KeyEvent.VK_CONTROL);
                 robot.keyPress(KeyEvent.VK_MINUS);
@@ -346,7 +372,21 @@ public class ReusableUtil {
                 Thread.sleep(300);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("⚠️ Failed while zooming out.", e);
+        }
+    }
+
+    public void zoomInPage(int times) {
+        try {
+            for (int i = 0; i < times; i++) {
+                robot.keyPress(KeyEvent.VK_CONTROL);
+                robot.keyPress(KeyEvent.VK_PLUS);
+                robot.keyRelease(KeyEvent.VK_PLUS);
+                robot.keyRelease(KeyEvent.VK_CONTROL);
+                Thread.sleep(300);
+            }
+        } catch (Exception e) {
+            logger.error("⚠️ Failed while zooming in.", e);
         }
     }
 

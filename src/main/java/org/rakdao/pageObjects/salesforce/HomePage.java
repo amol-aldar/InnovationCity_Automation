@@ -10,6 +10,8 @@ import org.rakdao.utils.JsonLocatorReader;
 import org.rakdao.utils.ReusableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.awt.*;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
@@ -19,7 +21,7 @@ public class HomePage extends ReusableUtil {
     private final WebDriver driver;
     private static final Logger logger = LoggerFactory.getLogger(HomePage.class);
 
-    public HomePage(WebDriver driver) {
+    public HomePage(WebDriver driver) throws AWTException {
         super(driver);
         this.driver = driver;
         PageFactory.initElements(driver, this);
@@ -194,7 +196,7 @@ public class HomePage extends ReusableUtil {
     /**
      * After clicking “New Lead”, switch control to LeadPage.
      */
-    public LeadPage goToLeadPage() {
+    public LeadPage goToLeadPage() throws AWTException {
         logger.info("[goToLeadPage] Switching to LeadPage object...");
         return new LeadPage(driver);
     }

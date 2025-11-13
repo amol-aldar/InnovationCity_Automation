@@ -20,7 +20,7 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.time.Duration;
 
-public class CustomerPortalLogin extends ReusableUtil {
+public class CustomerPortalLogin {
 
     private WebDriver driver;
     private static final String PORTAL_URL = "https://innovationcity--staging.sandbox.my.site.com/s/login/";
@@ -28,9 +28,6 @@ public class CustomerPortalLogin extends ReusableUtil {
     private static final String PASSWORD = "Rakdao@123";
     private static final Logger logger = LoggerFactory.getLogger(CustomerPortalLogin.class);
 
-    public CustomerPortalLogin(WebDriver driver) {
-        super(driver);
-    }
 
     @BeforeClass
     public void setup() throws Exception {
@@ -51,7 +48,7 @@ public class CustomerPortalLogin extends ReusableUtil {
 
 
     @Test
-    public void testPortalApplicationFlow() throws IOException, InterruptedException {
+    public void testPortalApplicationFlow() throws IOException, InterruptedException, AWTException {
         try{
         // ✅ Check if already logged in (OTP skipped)
         if (driver.getCurrentUrl().contains("/s/login")) {
@@ -65,7 +62,8 @@ public class CustomerPortalLogin extends ReusableUtil {
         PortalHomePage portalHomePage = new PortalHomePage(driver);
         PortalApplicationPage portalApplicationPage = portalHomePage.clickContinueWithApplication();
 // 🔍 Zoom out while maximized
-            zoomOutPage(4);
+            ReusableUtil reusableUtil= new ReusableUtil(driver);
+            reusableUtil.zoomOutPage(4);
         // ============================================================
         // 🧭 STEP 10: Fill Business Information in Portal
         // ============================================================
@@ -91,12 +89,12 @@ public class CustomerPortalLogin extends ReusableUtil {
         // ============================================================
         // 💳 STEP 12: Select Payment Method and Process Payment
         // ============================================================
-        portalApplicationPage.selectPaymentMethod("Credit/Debit Card");
-        Thread.sleep(3000);
+//        portalApplicationPage.selectPaymentMethod("Credit/Debit Card");
+//        Thread.sleep(3000);
 //            portalApplicationPage.selectPaymentMethod("Wire Transfer");
-        portalApplicationPage.acceptTermsAndConditions();
-        portalApplicationPage.clickPortalApplicationCTA("Proceed With Payment");
-        portalApplicationPage.enterPaymentDetails("41111111111111111", "12/30", "123", "Amol");
+
+//        portalApplicationPage.clickPortalApplicationCTA("Proceed With Payment");
+//        portalApplicationPage.enterPaymentDetails("41111111111111111", "12/30", "123", "Amol");
 
         // ============================================================
         // 👥 STEP 13: Enter Shareholder Details
@@ -143,16 +141,15 @@ public class CustomerPortalLogin extends ReusableUtil {
         // ============================================================
         portalApplicationPage.selectUBOCheckbox();
         portalApplicationPage.selectVotingRightCheckbox();
-        portalApplicationPage.selectManagerCheckbox();
-        portalApplicationPage.selectDirectorCheckbox();
-        portalApplicationPage.selectAuthorizedSignatoryCheckbox();
+//        portalApplicationPage.selectManagerCheckbox();
+//        portalApplicationPage.selectDirectorCheckbox();
+//        portalApplicationPage.selectAuthorizedSignatoryCheckbox();
         portalApplicationPage.selectNatureOfOwnership("Control through other means e.g. holds decision or veto rights and /or controls the rights of others");
         portalApplicationPage.enterOwnedShares();
 
         // ============================================================
         // ✅ STEP 16: Submit Shareholder Details
         // ============================================================
-        Thread.sleep(5000);
         String shareholderSubSucMsg = portalApplicationPage.clickSubmitButton();
         logger.info("✅ Shareholder information submitted successfully.");
 

@@ -7,6 +7,8 @@ import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.rakdao.utils.ReusableUtil;
+import org.rakdao.utils.User;
+import org.rakdao.utils.UserGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,8 +26,9 @@ public class PortalApplicationPage extends ReusableUtil {
     private final WebDriver driver;
     private final Random random = new Random();
     JavascriptExecutor js;
+    User user = UserGenerator.generateUser();
 
-    public PortalApplicationPage(WebDriver driver) {
+    public PortalApplicationPage(WebDriver driver) throws AWTException {
         super(driver);
         this.driver = driver;
         PageFactory.initElements(driver, this);
@@ -708,13 +711,13 @@ public class PortalApplicationPage extends ReusableUtil {
 
     public void enterNumberOfShares(){
 
-        int shares = 1000;
+        int shares = 100;
         String shareNumber = String.valueOf(shares);
         typeAndLog(shareNumberInput, shareNumber, "Number Of Shares");
     }
 
     public void enterShareValue(){
-        int shares = 1000;
+        int shares = 10;
         String shareValue = String.valueOf(shares);
         typeAndLog(shareValueInput, shareValue, "Each Share Value");
     }
@@ -965,28 +968,27 @@ public class PortalApplicationPage extends ReusableUtil {
         WebElement fieldInput = driver.findElement(By.xpath(xpath));
         // Generate random email address
         String[] domains = {"gmail.com", "yahoo.com", "outlook.com", "example.com"};
-        String randomName = "user" + System.currentTimeMillis(); // unique per run
+        String randomName = "user" + 100; // unique per run
         String randomDomain = domains[new Random().nextInt(domains.length)];
         String randomEmail = randomName + "@" + randomDomain;
 
         typeAndLog(fieldInput, randomEmail, "Shareholder Primary Email");
     }
 
-    public void enterShareholderPrimaryMobileNum(String fieldName) {
+    public void enterShareholderPrimaryMobileNum(String fieldName) throws InterruptedException {
+
         String xpath = String.format("//label[normalize-space(text())='%s']/preceding::input[@type='tel'][1]", fieldName);
         WebElement phoneField = new WebDriverWait(driver, Duration.ofSeconds(10))
                 .until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
-
         enterPhoneNumber(phoneField, "Shareholder Primary Mobile Number");
     }
 
-    private void enterPhoneNumber(WebElement phoneInput, String fieldName) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+    /*private void enterPhoneNumber(WebElement phoneInput, String fieldName) {
         Random random = new Random();
 
         try {
             // 📱 Generate random UAE-style number: 05XXXXXXXX
-            String randomPhone = "05" + (10000000 + random.nextInt(89999999));
+            String randomPhone = "55" + (1000000 + random.nextInt(8999999));
             logger.info("📞 Generated random number for '{}': {}", fieldName, randomPhone);
 
             // Wait for element visibility and interactivity
@@ -1068,8 +1070,103 @@ public class PortalApplicationPage extends ReusableUtil {
             logger.error("❌ Exception while entering {}: {}", fieldName, e.getMessage());
             throw new RuntimeException(e);
         }
-    }
+    }*/
 
+
+
+    /**
+     * 📱 Generic reusable method to enter phone numbers in input fields.
+     * Handles flag overlays, JS fallback, and logs all attempts.
+     *
+     * @param phoneField WebElement of the phone input
+     * @param fieldName  Descriptive name for logging (e.g., "Shareholder Mobile")
+     */
+    public void enterPhoneNumber(WebElement phoneField, String fieldName) {
+        Random random = new Random();
+        String randomPhone = "055" + (1000000 + random.nextInt(8999999)); // Example: 558123456
+
+        try {
+            logger.info("📞 Generated random number for '{}': {}", fieldName, randomPhone);
+
+            // ✅ Ensure element is visible and interactable
+            waitForVisibility(phoneField);
+            waitForClickability(phoneField);
+            scrollToElement(phoneField);
+
+            // === Attempt 1: Normal click & sendKeys with offset to skip country flag ===
+            try {
+                ((JavascriptExecutor) driver).executeScript("arguments[0].focus();", phoneField);
+                new Actions(driver).moveToElement(phoneField, 150, 5).click().perform();
+
+                phoneField.sendKeys(Keys.chord(Keys.CONTROL, "a", Keys.DELETE)); // Clear
+                phoneField.sendKeys(randomPhone);
+                phoneField.sendKeys(Keys.TAB);
+
+                Thread.sleep(700);
+                String actualValue = phoneField.getAttribute("value");
+
+                if (actualValue != null && actualValue.contains("05")) {
+                    logger.info("✅ '{}' entered successfully via sendKeys: {}", fieldName, actualValue);
+                    return;
+                } else {
+                    logger.warn("⚠️ Value not reflected after sendKeys for '{}'. Trying JS fallback...", fieldName);
+                }
+
+            } catch (ElementNotInteractableException e) {
+                logger.warn("⚠️ Element not interactable for '{}', trying JS fallback...", fieldName);
+            }
+
+            // === Attempt 2: JavaScript fallback ===
+            try {
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                String script =
+                        "arguments[0].value = arguments[1];" +
+                                "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));" +
+                                "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));" +
+                                "arguments[0].blur();";
+                js.executeScript(script, phoneField, randomPhone);
+                Thread.sleep(500);
+
+                String actualValue = phoneField.getAttribute("value");
+                if (actualValue != null && actualValue.contains("05")) {
+                    logger.info("✅ '{}' entered successfully via JavaScript: {}", fieldName, actualValue);
+                    return;
+                } else {
+                    logger.warn("⚠️ JS executed but value not reflected for '{}'", fieldName);
+                }
+
+            } catch (Exception e) {
+                logger.error("❌ JS fallback failed for '{}': {}", fieldName, e.getMessage());
+            }
+
+            // === Attempt 3: Manual character-by-character typing ===
+            try {
+                logger.info("⌨️ Trying manual typing fallback for '{}'", fieldName);
+                phoneField.click();
+                for (char c : randomPhone.toCharArray()) {
+                    phoneField.sendKeys(Character.toString(c));
+                    Thread.sleep(40);
+                }
+                phoneField.sendKeys(Keys.TAB);
+
+                String actualValue = phoneField.getAttribute("value");
+                if (actualValue != null && actualValue.contains("05")) {
+                    logger.info("✅ '{}' entered successfully via typing simulation: {}", fieldName, actualValue);
+                    return;
+                }
+
+            } catch (Exception e) {
+                logger.error("❌ Manual typing failed for '{}': {}", fieldName, e.getMessage());
+            }
+
+            logger.error("❌ All methods failed to enter '{}' number.", fieldName);
+            throw new RuntimeException("Failed to input phone number for: " + fieldName);
+
+        } catch (Exception e) {
+            logger.error("❌ Exception in enterPhoneNumber('{}'): {}", fieldName, e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
 
 
 
@@ -1147,8 +1244,9 @@ public class PortalApplicationPage extends ReusableUtil {
     }
 
     public void enterResidentialFlatNumber() {
-        int randomFlat = 100 + new Random().nextInt(900); // e.g., 101–999
-        String flatNumber = "Flat " + randomFlat;
+        int randomFlat = 100 + new Random().nextInt(900); // e.g., 347
+        String flatNumber = String.valueOf(randomFlat);
+
 
         logger.info("🏠 Attempting to enter Flat Number: {}", flatNumber);
         try {
@@ -1285,7 +1383,7 @@ public class PortalApplicationPage extends ReusableUtil {
 
     public void enterOwnedShares() {
 //        int shares = 1000 + new Random().nextInt(9000); // random between 1000–9999
-        int shares = 1000;
+        int shares = 100;
         String shareText = String.valueOf(shares);
         logger.info("💰 Entering Owned Shares: {}", shareText);
         try {

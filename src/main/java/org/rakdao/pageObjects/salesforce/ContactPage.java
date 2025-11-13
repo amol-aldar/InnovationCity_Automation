@@ -9,6 +9,8 @@ import org.rakdao.utils.ReusableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
+
 public class ContactPage extends ReusableUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(ContactPage.class);
@@ -16,7 +18,7 @@ public class ContactPage extends ReusableUtil {
 
 
     // Constructor
-    public ContactPage(WebDriver driver) {
+    public ContactPage(WebDriver driver) throws AWTException {
         super(driver);
         this.driver = driver;
         PageFactory.initElements(driver, this);
@@ -31,7 +33,7 @@ public class ContactPage extends ReusableUtil {
 
 
     // 🔹 Action Methods
-    public PortalHomePage goToPortal() {
+    public PortalHomePage goToPortal() throws AWTException {
         logger.info("🔍 Attempting to click 'Log in to Experience as User' button on ContactPage...");
 
         try {

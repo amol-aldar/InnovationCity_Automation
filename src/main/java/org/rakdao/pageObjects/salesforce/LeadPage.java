@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.asserts.SoftAssert;
 
+import java.awt.*;
 import java.time.Duration;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -21,7 +22,7 @@ public class LeadPage extends ReusableUtil {
     private static final Logger logger = LoggerFactory.getLogger(LeadPage.class);
     SoftAssert softAssert= new SoftAssert();
 
-    public LeadPage(WebDriver driver) {
+    public LeadPage(WebDriver driver) throws AWTException {
         super(driver);
         this.driver = driver;
         PageFactory.initElements(driver, this);
@@ -329,7 +330,7 @@ public class LeadPage extends ReusableUtil {
         logger.info("[clickLeadModalCta] ✅ Clicked modal CTA '{}'", ctaText);
     }
 
-    public OpportunityPage goToAccountContactOpportunity(String itemName) {
+    public OpportunityPage goToAccountContactOpportunity(String itemName) throws AWTException {
         logger.info("Clicking primary field for converted item: {}", itemName);
         waitForVisibility(titleEle);
         softAssert.assertEquals(titleEle.getText(), "Your lead has been converted");

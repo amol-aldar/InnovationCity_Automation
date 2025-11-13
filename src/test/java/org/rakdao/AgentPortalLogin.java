@@ -58,7 +58,7 @@ public class AgentPortalLogin {
 
 
     @Test
-    public void testPortalApplicationFlow() throws IOException, InterruptedException {
+    public void testPortalApplicationFlow() throws IOException, InterruptedException, AWTException {
         // ✅ Check if already logged in (OTP skipped)
         if (driver.getCurrentUrl().contains("/s/login")) {
             System.out.println("🔐 Not logged in — performing login...");
