@@ -1,4 +1,4 @@
-package org.rakdao.pageObjects;
+package org.rakdao.pageObjects.salesforce;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;

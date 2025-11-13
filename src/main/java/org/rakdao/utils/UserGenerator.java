@@ -4,40 +4,39 @@ import java.util.Random;
 
 public class UserGenerator {
     private static final String[] FIRST_NAMES = {
-            "John", "Alice", "Michael", "Emma", "David", "Sophia",
-            "Liam", "Olivia", "Noah", "Ava", "Elijah", "Isabella",
-            "James", "Mia", "William", "Charlotte", "Benjamin", "Amelia",
-            "Lucas", "Harper", "Henry", "Evelyn", "Alexander", "Abigail",
-            "Daniel", "Emily", "Matthew", "Ella", "Jackson", "Elizabeth",
-            "Sebastian", "Camila", "Jack", "Luna", "Owen", "Sofia",
-            "Gabriel", "Avery", "Carter", "Mila", "Jayden", "Aria",
-            "Grayson", "Scarlett", "Leo", "Penelope", "Julian", "Chloe",
-            "Hudson", "Layla"
+            "Aria", "Brandon", "Caitlyn", "Derek", "Elena", "Felix",
+            "Giselle", "Hector", "Isla", "Jasper", "Kara", "Landon",
+            "Marina", "Nolan", "Ophelia", "Preston", "Quinn", "Rafael",
+            "Selena", "Tobias", "Uma", "Victor", "Wendy", "Xander",
+            "Yara", "Zane", "Alden", "Bianca", "Colton", "Dahlia",
+            "Ethan", "Fiona", "Griffin", "Hazel", "Ian", "Juliana",
+            "Kai", "Livia", "Milo", "Nia", "Orion", "Paige",
+            "Quincy", "Riley", "Soren", "Thalia", "Ulric", "Vera",
+            "Wyatt", "Ximena"
     };
 
     private static final String[] LAST_NAMES = {
-            "Smith", "Johnson", "Williams", "Brown", "Jones", "Miller",
-            "Davis", "Garcia", "Rodriguez", "Wilson", "Martinez", "Anderson",
-            "Taylor", "Thomas", "Hernandez", "Moore", "Martin", "Jackson",
-            "Thompson", "White", "Lopez", "Lee", "Gonzalez", "Harris",
-            "Clark", "Lewis", "Robinson", "Walker", "Perez", "Hall",
-            "Young", "Allen", "Sanchez", "Wright", "King", "Scott",
-            "Green", "Baker", "Adams", "Nelson", "Hill", "Ramirez",
-            "Campbell", "Mitchell", "Roberts", "Carter", "Phillips", "Evans",
-            "Turner", "Torres"
+            "Armstrong", "Bennett", "Carver", "Dalton", "Everett", "Fletcher",
+            "Grayson", "Hawkins", "Iverson", "Jacobs", "Kingsley", "Lang",
+            "Montgomery", "Nash", "Oakley", "Prescott", "Quinn", "Ramsey",
+            "Sterling", "Thorne", "Underwood", "Vance", "Weston", "Yates",
+            "Zimmerman", "Ashford", "Barker", "Chandler", "Donovan", "Ellis",
+            "Frost", "Garrison", "Huxley", "Ingram", "Jefferson", "Kendrick",
+            "Lockhart", "Maddox", "North", "Ortega", "Patterson", "Quigley",
+            "Rowan", "Sinclair", "Tucker", "Upton", "Valentine", "Winslow"
     };
 
     private static final String[] COMPANY_NAMES = {
-            "TechCorp", "InnoSoft", "AlphaDev", "BrightWorks", "NextGen",
-            "CyberLogic", "DataNimbus", "NetFusion", "CloudMatrix", "SoftNova",
-            "QuantumLeap", "DevSolutions", "NovaEdge", "BlueWave", "SkyLabs",
-            "ZenithCode", "PixelHub", "CoreApps", "NexaTech", "SoftCircuit",
-            "InnovaTech", "RapidWare", "SmartLogic", "CodeStream", "FlexSystems",
-            "ByteForge", "LogicPulse", "MatrixWare", "GridNet", "InfoSpark",
-            "DataBridge", "BrightPixel", "CodeHive", "BlueNova", "SoftEdge",
-            "NextLogic", "VisionSoft", "Cloudify", "DeltaApps", "ProximaTech",
-            "SynapseSoft", "QuantumCore", "TechNest", "PrimeLogic", "SoftSphere",
-            "NeoWare", "InnoByte", "OptiTech", "CoreFusion", "CyberNest"
+            "AeroTech", "BrightLabs", "CloudVista", "DataForge", "EcoLogic",
+            "FutureWave", "GreenByte", "Hyperion", "InnovaWorks", "JetStream",
+            "KineticSoft", "LuminaTech", "MetaWorks", "NeoLogic", "OptimaCore",
+            "PixelRise", "QuantumSoft", "RapidSolutions", "SkylineTech", "TechNova",
+            "UltraByte", "VectorLabs", "Wavefront", "XenoTech", "YieldSoft",
+            "ZenLabs", "AlphaWave", "BlueMatrix", "CoreVista", "DeltaByte",
+            "EvoTech", "FluxLogic", "GlowSoft", "HorizonLabs", "IntelliCore",
+            "JadeSoft", "KryptonTech", "LightWave", "MindCore", "NovaSphere",
+            "OnyxLabs", "PrimeSoft", "QuantumWave", "RedPixel", "SolarTech",
+            "TitanLabs", "UnityWorks", "VortexSoft", "WhiteWave", "ZenithLabs"
     };
 
     public static User generateUser() {

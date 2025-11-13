@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
+import java.awt.*;
 import java.time.Duration;
 
 public class WebLeadFormAutomation {
@@ -28,7 +29,7 @@ public class WebLeadFormAutomation {
     }
 
     @Test(dataProvider = "urls")
-    public void leadFormTest(String url) {
+    public void leadFormTest(String url) throws AWTException {
         User user = UserGenerator.generateUser();
         logger.info("🌐 Starting lead submission for URL: {}", url);
 
@@ -59,7 +60,7 @@ public class WebLeadFormAutomation {
     @DataProvider(name = "urls")
     public Object[][] getURL() {
         return new Object[][]{
-                {"https://launchwith-staging.innovationcity.com/"},
+                {"https://staging.innovationcity.com/?source=Email%20Campaign"},{"https://launchwith-staging.innovationcity.com/?source=Email%20Campaign"},{"https://launchwith-staging.innovationcity.com/"},
                 {"https://launchwith-staging.innovationcity.com/?utm_medium=cpc&utm_campaign=remarketing"},
                 {"https://staging.innovationcity.com/#contact"},
                 {"https://staging.innovationcity.com/?utm_source=fb-ig&utm_medium=paid-social&utm_campaign=remarketing"}

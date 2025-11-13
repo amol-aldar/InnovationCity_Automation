@@ -1,8 +1,10 @@
-package org.rakdao.pageObjects;
+package org.rakdao.pageObjects.salesforce;
 
 import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.rakdao.utils.ReusableUtil;
@@ -10,10 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.asserts.SoftAssert;
 
+import java.awt.*;
 import java.time.Duration;
+import java.util.*;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 public class OpportunityPage extends ReusableUtil {
 
@@ -21,7 +24,7 @@ public class OpportunityPage extends ReusableUtil {
     private static final Logger logger = LoggerFactory.getLogger(OpportunityPage.class);
     SoftAssert softAssert = new SoftAssert();
 
-    public OpportunityPage(WebDriver driver) {
+    public OpportunityPage(WebDriver driver) throws AWTException {
         super(driver);
         this.driver = driver;
         PageFactory.initElements(driver, this);
@@ -43,11 +46,18 @@ public class OpportunityPage extends ReusableUtil {
     @FindBy(css = "input[title='Search Products']")
     private WebElement productSearchBoxEle;
 
+    @FindBy(css = "div.listContent")
+    private WebElement productListBoxEle;
+
+    By listBoxLocator=By.xpath("//div[@role='listbox']");
+
+
+
     @FindBy(xpath = "//span[@part='formatted-rich-text' and contains(., 'visa') and contains(., 'year')]")
     private List<WebElement> productDropdown;
 
     // Table element
-    @FindBy(css = ".slds-grid.listDisplays.safari-workaround-anchor table.slds-table")
+    @FindBy(css = "div.modal-body.scrollable.slds-modal__content.slds-p-around_medium")
     private WebElement productTable;
 
     // Headers
@@ -82,6 +92,10 @@ public class OpportunityPage extends ReusableUtil {
 
     @FindBy(xpath="//span[text()='Mark as Current Stage']")
     private WebElement MarkCompleteCurrentStageEle;
+
+    @FindBy(xpath="//span[text()='Stage changed successfully.']")
+    private WebElement stageCompleteSuccessMsgEle;
+
 
     @FindBy(css="div.selectionCountString button[class='slds-button slds-button']")
     private WebElement productCountAddedEle;
@@ -179,41 +193,46 @@ public class OpportunityPage extends ReusableUtil {
             throw new RuntimeException("Could not click Price Book CTA: " + ctaText, e);
         }
     }
+    public void chooseProductFromStandardBook(String productName) throws InterruptedException {
+        waitForVisibility(productSearchBoxEle);
+        for (char c : productName.toCharArray()) {
+            productSearchBoxEle.sendKeys(Character.toString(c));
+            Thread.sleep(100); // tiny delay per char — stabilizes dropdown
+        }
 
-    public void chooseProductFromStandardBook(String productName) {
-        logger.info("[chooseProductFromStandardBook] Attempting to select product: {}", productName);
+        logger.info("[chooseProductFromStandardBook] Typed '{}' in product search box.", productName);
 
         try {
-            waitForVisibility(productTable);
-            logger.debug("[chooseProductFromStandardBook] Product table visible.");
+            // Wait for the list to appear
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//ul[contains(@class,'lookup__list')]")));
 
-            productSearchBoxEle.sendKeys(productName);
-            Thread.sleep(1000);
-            logger.info("[chooseProductFromStandardBook] Entered '{}' into search box.", productName);
+            // Scroll if necessary to find your product (some items start as invisible)
+            List<WebElement> allOptions = driver.findElements(
+                    By.xpath("//li[contains(@class,'lookup__item')]//div[contains(@class,'primaryLabel')]")
+            );
 
-            By listBoxLocator=By.xpath("//div[@role='listbox']");
-            logger.debug("[chooseProductFromStandardBook] Waiting for listbox...");
-            waitForVisibility(driver.findElement(listBoxLocator));
-
-            Optional<WebElement> matchedProduct = productDropdown.stream()
-                    .filter(product -> product.getText().trim().equalsIgnoreCase(productName))
-                    .findFirst();
-
-            if (matchedProduct.isPresent()) {
-                WebElement productEle = matchedProduct.get();
-                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", productEle);
-                productEle.click();
-                logger.info("[chooseProductFromStandardBook] ✅ Selected product '{}'", productName);
-            } else {
-                logger.error("[chooseProductFromStandardBook] ❌ Product '{}' not found!", productName);
-                throw new NoSuchElementException("Product not found: " + productName);
+            boolean found = false;
+            for (WebElement option : allOptions) {
+                String text = option.getText().trim();
+                if (text.equalsIgnoreCase(productName)) {
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", option);
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", option);
+                    found = true;
+                    System.out.println("✅ Selected product: " + text);
+                    break;
+                }
             }
-        } catch (Exception e) {
-            logger.error("[chooseProductFromStandardBook] ❌ Failed to select '{}'", productName, e);
-            throw new RuntimeException("Failed to select product: " + productName, e);
+
+            if (!found) {
+                throw new NoSuchElementException("❌ Product not found in list: " + productName);
+            }
+
+        } catch (TimeoutException e) {
+            System.out.println("❌ Lookup list did not appear in time.");
         }
-        waitForVisibility(productCountAddedEle);
     }
+
+
 
     public void clickOnCta(String ctaText) {
         logger.info("[clickOnCta] Attempting to click CTA: {}", ctaText);
@@ -264,7 +283,7 @@ public class OpportunityPage extends ReusableUtil {
             logger.error("[clickEditProductModalCta] ❌ Failed to click CTA '{}'", ctaText, e);
             throw new RuntimeException("Failed to click CTA: " + ctaText, e);
         }
-        waitForInvisibility(spinner);
+//        waitForInvisibility(spinner);
     }
 
 //    public void clickAddInventoryButton() {
@@ -294,50 +313,62 @@ public class OpportunityPage extends ReusableUtil {
 //    }
 
     public void clickAddInventoryButton() {
-        logger.info("[clickAddInventoryButton] Attempting to click 'Add Inventory'...");
+        logger.info("[clickAddInventoryButton] 🟡 Attempting to click 'Add Inventory' quickly and safely...");
+        driver.navigate().refresh();
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        Actions actions = new Actions(driver);
 
         try {
-            // Step 1: Try normal click first
-            scrollToElement(addInventoryEle);
-            waitForClickability(addInventoryEle);
+            // Short, direct wait (reduce default 15–20s to 5s)
 
+            wait.until(ExpectedConditions.visibilityOf(addInventoryEle));
+            wait.until(ExpectedConditions.elementToBeClickable(addInventoryEle));
+
+            // Scroll slightly into view for reliability
+            js.executeScript("arguments[0].scrollIntoView({block:'center'});", addInventoryEle);
+
+            // Try a fast Actions-based click first (bypasses overlays)
             try {
-                addInventoryEle.click();
-                logger.info("[clickAddInventoryButton] ✅ Normal click succeeded.");
-                return; // Success, exit early
-            } catch (ElementClickInterceptedException e) {
-                logger.warn("[clickAddInventoryButton] Normal click intercepted, trying JS click...");
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addInventoryEle);
-                logger.info("[clickAddInventoryButton] ✅ JS click succeeded on first attempt.");
+                actions.moveToElement(addInventoryEle).pause(Duration.ofMillis(200)).click().perform();
+                logger.info("[clickAddInventoryButton] ✅ Clicked using Actions.");
                 return;
+            } catch (Exception e) {
+                logger.warn("[clickAddInventoryButton] ⚠️ Actions click failed, trying JS click...", e);
             }
 
-        } catch (Exception firstAttemptEx) {
-            logger.warn("[clickAddInventoryButton] First attempt failed, refreshing page and retrying...", firstAttemptEx);
-        }
+            // Fallback 1: JS click (instant)
+            try {
+                js.executeScript("arguments[0].click();", addInventoryEle);
+                logger.info("[clickAddInventoryButton] ✅ Clicked using JavaScript.");
+                return;
+            } catch (Exception e) {
+                logger.warn("[clickAddInventoryButton] ⚠️ JS click failed, trying normal click...", e);
+            }
 
-        // Step 2: Refresh and retry if first attempt failed
-        try {
-            driver.navigate().refresh();
-            logger.info("[clickAddInventoryButton] Page refreshed, retrying click...");
-
-            scrollToElement(addInventoryEle);
-            waitForClickability(addInventoryEle);
-
+            // Fallback 2: Normal Selenium click (if still accessible)
             try {
                 addInventoryEle.click();
-                logger.info("[clickAddInventoryButton] ✅ Normal click succeeded after refresh.");
-            } catch (ElementClickInterceptedException e2) {
-                logger.warn("[clickAddInventoryButton] Second normal click intercepted, retrying JS...");
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addInventoryEle);
-                logger.info("[clickAddInventoryButton] ✅ JS click succeeded after refresh.");
+                logger.info("[clickAddInventoryButton] ✅ Clicked using WebDriver.");
+                return;
+            } catch (Exception e) {
+                logger.warn("[clickAddInventoryButton] ❌ Normal click failed too, will refresh page and retry once.", e);
             }
 
-        } catch (Exception finalEx) {
-            logger.error("[clickAddInventoryButton] ❌ Click failed even after refresh.", finalEx);
-            throw new RuntimeException("Failed to click 'Add Inventory' even after refresh.", finalEx);
+            // Only refresh if all click methods fail
+            driver.navigate().refresh();
+            logger.info("[clickAddInventoryButton] 🔄 Page refreshed, retrying click once...");
+
+            wait.until(ExpectedConditions.visibilityOf(addInventoryEle));
+            js.executeScript("arguments[0].scrollIntoView({block:'center'});", addInventoryEle);
+            js.executeScript("arguments[0].click();", addInventoryEle);
+            logger.info("[clickAddInventoryButton] ✅ Click succeeded after refresh.");
+
+        } catch (Exception e) {
+            logger.error("[clickAddInventoryButton] ❌ Click failed even after fallback attempts.", e);
+            throw new RuntimeException("Failed to click 'Add Inventory' button.", e);
         }
     }
+
 
 
     private void selectDropdownValue(WebElement dropdown, String value) {
@@ -492,11 +523,12 @@ public class OpportunityPage extends ReusableUtil {
         logger.info("[clickOpportunityStage] Clicking stage: {}", stageName);
         driver.navigate().refresh();
         By entityTypeEle = By.xpath("//p[text()='Entity Type']");
+        waitForVisibility(driver.findElement(entityTypeEle));
         scrollToElement(driver.findElement(entityTypeEle));
 
         try {
             logger.debug("[clickOpportunityStage] Waiting for spinner...");
-            waitForInvisibility(spinner);
+//            waitForInvisibility(spinner);
             logger.debug("[clickOpportunityStage] Spinner gone, path visible.");
             waitForVisibility(opportunityNavStageBarEle);
 
@@ -525,7 +557,7 @@ public class OpportunityPage extends ReusableUtil {
         }
     }
 
-    public void clickOpportunityCompleteButton() {
+    public String clickOpportunityCompleteButton() {
         logger.info("[clickOpportunityCompleteButton] Clicking 'Mark Complete'...");
         try {
             waitForClickability(MarkCompleteCurrentStageEle);
@@ -541,29 +573,91 @@ public class OpportunityPage extends ReusableUtil {
                 throw new RuntimeException("Failed to click 'Mark Complete'.", jsEx);
             }
         }
+        waitForVisibility(stageCompleteSuccessMsgEle);
+        return stageCompleteSuccessMsgEle.getText();
     }
 
-    public void loginToPortal(){
-        List<WebElement> HeaderFieldsEle=driver.findElements(By.cssSelector("div[class*='windowViewMode-normal'] div p.slds-text-title.slds-truncate"));
 
-    }
+//    public ContactPage goToContactOrAccount(String headerLabel) {
+//        try {
+//            logger.info("Redirects contact");
+//            driver.navigate().refresh();
+//            scrollToElement(driver.findElement(By.xpath("//p[text()='Entity Type']")));
+//
+//            // Locate the field by its label dynamically (e.g., Primary Contact, Account Name)
+//            String dynamicXPath = "//p[@class='slds-text-title slds-truncate' and normalize-space(text())='"
+//                    + headerLabel + "']/following-sibling::p//a";
+//
+//            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+//            WebElement linkElement = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(dynamicXPath)));
+//            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", linkElement);
+//            linkElement.click();
+//            logger.info("Clicked link below header: " + headerLabel);
+//        } catch (TimeoutException e) {
+//            logger.error("Link not found for header: " + headerLabel);
+//            throw new RuntimeException("Unable to find link below header: " + headerLabel, e);
+//        }
+//        return new ContactPage(driver);
+//    }
 
-    public void clickLinkBelowHeader(String headerLabel) {
+    public ContactPage goToContactOrAccount(String headerLabel) throws AWTException {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        Actions actions = new Actions(driver);
+
         try {
-            // Locate the field by its label dynamically (e.g., Primary Contact, Account Name)
+            logger.info("🔄 Navigating to {} page by header label: '{}'",
+                    headerLabel.contains("Contact") ? "Contact" : "Account", headerLabel);
+
+            driver.navigate().refresh();
+            logger.info("🔃 Page refreshed successfully.");
+
+            // Wait for page readiness and base field to load
+            WebElement entityType = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                    By.xpath("//p[normalize-space(text())='Entity Type']")));
+            scrollToElement(entityType);
+            logger.info("✅ Base element 'Entity Type' is visible. Proceeding to locate header: '{}'", headerLabel);
+
+            // Construct dynamic XPath for the field link
             String dynamicXPath = "//p[@class='slds-text-title slds-truncate' and normalize-space(text())='"
                     + headerLabel + "']/following-sibling::p//a";
 
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-            WebElement linkElement = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(dynamicXPath)));
+            WebElement linkElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(dynamicXPath)));
+            scrollToElement(linkElement);
 
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", linkElement);
-            linkElement.click();
-            logger.info("Clicked link below header: " + headerLabel);
+            // Try standard click first
+            try {
+                wait.until(ExpectedConditions.elementToBeClickable(linkElement)).click();
+                logger.info("✅ Clicked on link below header: '{}'", headerLabel);
+            } catch (ElementClickInterceptedException ex) {
+                logger.warn("⚠️ Standard click intercepted for '{}', retrying with JavaScript click...", headerLabel);
+                js.executeScript("arguments[0].click();", linkElement);
+                logger.info("✅ Clicked using JavaScript fallback for '{}'", headerLabel);
+            }
+
         } catch (TimeoutException e) {
-            logger.error("Link not found for header: " + headerLabel);
-            throw new RuntimeException("Unable to find link below header: " + headerLabel, e);
+            logger.error("❌ Timeout: Unable to locate link below header '{}'.", headerLabel, e);
+
+            // Fallback — try relaxed locator if DOM structure differs
+            try {
+                String fallbackXPath = "//a[contains(@href,'/lightning/r/') and contains(text(),'" + headerLabel.split(" ")[0] + "')]";
+                WebElement fallbackLink = driver.findElement(By.xpath(fallbackXPath));
+                scrollToElement(fallbackLink);
+                js.executeScript("arguments[0].click();", fallbackLink);
+                logger.info("✅ Fallback click succeeded for '{}'", headerLabel);
+            } catch (Exception ex) {
+                logger.error("❌ Fallback failed for header '{}': {}", headerLabel, ex.getMessage());
+                throw new RuntimeException("Unable to find link for header: " + headerLabel, ex);
+            }
+
+        } catch (Exception e) {
+            logger.error("❌ Unexpected error while redirecting from Lead to {}: {}",
+                    headerLabel, e.getMessage(), e);
+            throw new RuntimeException("Failed to redirect to " + headerLabel, e);
         }
+
+        logger.info("➡️ Successfully navigated to {} detail page.", headerLabel);
+        return new ContactPage(driver);
     }
 
 }

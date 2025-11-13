@@ -13,6 +13,7 @@ import org.rakdao.utils.WriteToExcel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.time.Duration;
 import java.util.List;
 
@@ -49,11 +50,11 @@ public class WebLeadFormPageObjects extends ReusableUtil {
     @FindBy(css = ".thankyou-content a")
     private WebElement backToHomeLink;
 
-    @FindBy(css = "div.header-bar a.contact-button")
+    @FindBy(xpath = "//a[normalize-space(text())='GET STARTED']")
     private WebElement getStartedButtonEle;
 
     // ====== Constructor ======
-    public WebLeadFormPageObjects(WebDriver driver) {
+    public WebLeadFormPageObjects(WebDriver driver) throws AWTException {
         super(driver);
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
@@ -109,9 +110,8 @@ public class WebLeadFormPageObjects extends ReusableUtil {
             logger.info("🚀 Running LaunchWith Landing Page submission (ONCE)");
             submitLeadWithLandingPage(firstName, lastName);
             return true;
-        }
+        }else{
 
-        if (currentUrl.contains("utm")) {
             logger.info("📌 UTM URL detected → Clicking Get Started button first");
             scrollAndClick(getStartedButtonEle);
         }

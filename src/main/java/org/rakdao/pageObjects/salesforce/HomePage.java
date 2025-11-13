@@ -1,14 +1,17 @@
-package org.rakdao.pageObjects;
+package org.rakdao.pageObjects.salesforce;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.rakdao.pageObjects.BasePage;
 import org.rakdao.utils.JsonLocatorReader;
 import org.rakdao.utils.ReusableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.awt.*;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
@@ -18,7 +21,7 @@ public class HomePage extends ReusableUtil {
     private final WebDriver driver;
     private static final Logger logger = LoggerFactory.getLogger(HomePage.class);
 
-    public HomePage(WebDriver driver) {
+    public HomePage(WebDriver driver) throws AWTException {
         super(driver);
         this.driver = driver;
         PageFactory.initElements(driver, this);
@@ -48,11 +51,49 @@ public class HomePage extends ReusableUtil {
         logger.info("[clickNavigationTab] ✅ Clicked '{}'", tabName);
     }*/
 
+    public void clickNavigationTab(String tabName) {
+
+        logger.info("🔍 Attempting to click on navigation tab: {}", tabName);
+
+        // Convert tabName to lowercase for case-insensitive matching
+        String tabLower = tabName.toLowerCase();
+
+        // Robust XPath that works even if Salesforce changes tab structure or text slightly
+        String dynamicTabXpath = String.format(
+                "//a[" +
+                        "(" +
+                        "contains(translate(@href,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'/ %1$s')" +
+                        " or contains(translate(@title,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'%1$s')" +
+                        " or .//span[contains(translate(normalize-space(.),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'%1$s')]" +
+                        ")" +
+                        " and contains(@class,'slds-context-bar__label-action')" +
+                        "]",
+                tabLower
+        );
+
+        try {
+            WebElement tabElement = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(dynamicTabXpath)));
+            tabElement.click();
+            logger.info("✅ Successfully clicked on '{}' tab.", tabName);
+        } catch (Exception e1) {
+            logger.warn("⚠️ Normal click failed on '{}' tab. Trying JS fallback...", tabName);
+            try {
+                WebElement tabElement = driver.findElement(By.xpath(dynamicTabXpath));
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", tabElement);
+                logger.info("✅ JS click successful for '{}' tab.", tabName);
+            } catch (Exception e2) {
+                logger.error("❌ Failed to click on '{}' tab after all attempts: {}", tabName, e2.getMessage());
+                throw e2;
+            }
+        }
+    }
+
+
     /**
      * Clicks on the navigation bar tab such as 'Leads', 'Accounts', etc.
      * Optimized for speed: tries primary + first visible fallback quickly.
      */
-    public void clickNavigationTab(String tabName) throws IOException {
+    /*public void clickNavigationTab(String tabName) throws IOException {
         logger.info("[clickNavigationTab] Clicking navigation tab: {}", tabName);
 
         JsonLocatorReader.load(System.getProperty("user.dir")
@@ -85,7 +126,7 @@ public class HomePage extends ReusableUtil {
             new WebDriverWait(driver, Duration.ofSeconds(5))
                     .until(ExpectedConditions.elementToBeClickable(element)).click();
         }
-    }
+    }*/
 
 
 
@@ -155,7 +196,7 @@ public class HomePage extends ReusableUtil {
     /**
      * After clicking “New Lead”, switch control to LeadPage.
      */
-    public LeadPage goToLeadPage() {
+    public LeadPage goToLeadPage() throws AWTException {
         logger.info("[goToLeadPage] Switching to LeadPage object...");
         return new LeadPage(driver);
     }
