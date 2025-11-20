@@ -8,6 +8,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.rakdao.pageObjects.portal.DocumentUploadPage;
 import org.rakdao.pageObjects.portal.PortalApplicationPage;
 import org.rakdao.pageObjects.portal.PortalHomePage;
+import org.rakdao.pageObjects.portal.SignedDocumentPage;
 import org.rakdao.utils.ReusableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ public class CustomerPortalLogin {
 
     private WebDriver driver;
     private static final String PORTAL_URL = "https://innovationcity--staging.sandbox.my.site.com/s/login/";
-    private static final String USERNAME = "a.aldar+1457@innovationcity.com.innovationcity";
+    private static final String USERNAME = "a.aldar+1554@innovationcity.com.innovationcity";
     private static final String PASSWORD = "Rakdao@123";
     private static final Logger logger = LoggerFactory.getLogger(CustomerPortalLogin.class);
 
@@ -99,73 +100,76 @@ public class CustomerPortalLogin {
         // ============================================================
         // 👥 STEP 13: Enter Shareholder Details
         // ============================================================
-        portalApplicationPage.enterNumberOfShares();
-        portalApplicationPage.enterShareValue();
-        portalApplicationPage.clickAddShareholder("Individual");
-        portalApplicationPage.enterShareholderFname();
-        portalApplicationPage.enterShareholderLname();
-        portalApplicationPage.selectGender("Male");
-        portalApplicationPage.selectBirthCountry("India");
-        portalApplicationPage.enterShareholderPlaceOfBirth();
-        portalApplicationPage.selectNationality("India");
-        portalApplicationPage.enterShareholderPassportNum();
-        portalApplicationPage.enterDateOfBirth();
-        portalApplicationPage.enterPassportIssueDate();
-        portalApplicationPage.enterPassportExpiryDate();
-        portalApplicationPage.selectPassportIssueCountry("India");
-        portalApplicationPage.clickProceedButton();
-
-        portalApplicationPage.selectVisaType("No UAE Visa");
-        portalApplicationPage.clickProceedButton();
-        portalApplicationPage.enterShareholderPrimaryEmail("Primary Email");
-        portalApplicationPage.enterShareholderPrimaryMobileNum("Primary Phone");
-        portalApplicationPage.clickProceedButton();
-
-        // ============================================================
-        // 🏠 STEP 14: Enter Residential Information
-        // ============================================================
-        portalApplicationPage.selectResidentialCountry("India");
-        portalApplicationPage.selectResidentialProvince("Maharashtra");
-        portalApplicationPage.enterResidentialBuildingName();
-        portalApplicationPage.enterResidentialFlatNumber();
-        portalApplicationPage.enterResidentialStreetName();
-        portalApplicationPage.enterResidentialAreaName();
-        portalApplicationPage.enterResidentialPostalCode();
-        portalApplicationPage.enterResidentialCityVillage();
-        portalApplicationPage.selectYearsLiving();
-        portalApplicationPage.selectResidentialAddressCheckbox();
-        portalApplicationPage.clickProceedButton();
-
-        // ============================================================
-        // 🗳️ STEP 15: UBO, Roles, and Ownership Declaration
-        // ============================================================
-        portalApplicationPage.selectUBOCheckbox();
-        portalApplicationPage.selectVotingRightCheckbox();
+//        portalApplicationPage.enterNumberOfShares();
+//        portalApplicationPage.enterShareValue();
+//        portalApplicationPage.clickAddShareholder("Individual");
+//        portalApplicationPage.enterShareholderFname();
+//        portalApplicationPage.enterShareholderLname();
+//        portalApplicationPage.selectGender("Male");
+//        portalApplicationPage.selectBirthCountry("India");
+//        portalApplicationPage.enterShareholderPlaceOfBirth();
+//        portalApplicationPage.selectNationality("India");
+//        portalApplicationPage.enterShareholderPassportNum();
+//        portalApplicationPage.enterDateOfBirth();
+//        portalApplicationPage.enterPassportIssueDate();
+//        portalApplicationPage.enterPassportExpiryDate();
+//        portalApplicationPage.selectPassportIssueCountry("India");
+//        portalApplicationPage.clickProceedButton();
+//
+//        portalApplicationPage.selectVisaType("No UAE Visa");
+//        portalApplicationPage.clickProceedButton();
+//        portalApplicationPage.enterShareholderPrimaryEmail("Primary Email");
+//        portalApplicationPage.enterShareholderPrimaryMobileNum("Primary Phone");
+//        portalApplicationPage.clickProceedButton();
+//
+//        // ============================================================
+//        // 🏠 STEP 14: Enter Residential Information
+//        // ============================================================
+//        portalApplicationPage.selectResidentialCountry("India");
+//        portalApplicationPage.selectResidentialProvince("Maharashtra");
+//        portalApplicationPage.enterResidentialBuildingName();
+//        portalApplicationPage.enterResidentialFlatNumber();
+//        portalApplicationPage.enterResidentialStreetName();
+//        portalApplicationPage.enterResidentialAreaName();
+//        portalApplicationPage.enterResidentialPostalCode();
+//        portalApplicationPage.enterResidentialCityVillage();
+//        portalApplicationPage.selectYearsLiving();
+//        portalApplicationPage.selectResidentialAddressCheckbox();
+//        portalApplicationPage.clickProceedButton();
+//
+//        // ============================================================
+//        // 🗳️ STEP 15: UBO, Roles, and Ownership Declaration
+//        // ============================================================
+//        portalApplicationPage.selectUBOCheckbox();
+//        portalApplicationPage.selectVotingRightCheckbox();
 //        portalApplicationPage.selectManagerCheckbox();
 //        portalApplicationPage.selectDirectorCheckbox();
 //        portalApplicationPage.selectAuthorizedSignatoryCheckbox();
-        portalApplicationPage.selectNatureOfOwnership("Control through other means e.g. holds decision or veto rights and /or controls the rights of others");
-        portalApplicationPage.enterOwnedShares();
+//        portalApplicationPage.selectNatureOfOwnership("Control through other means e.g. holds decision or veto rights and /or controls the rights of others");
+//        portalApplicationPage.enterOwnedShares();
 
         // ============================================================
         // ✅ STEP 16: Submit Shareholder Details
         // ============================================================
-        String shareholderSubSucMsg = portalApplicationPage.clickSubmitButton();
+//        String shareholderSubSucMsg = portalApplicationPage.clickSubmitButton();
         logger.info("✅ Shareholder information submitted successfully.");
 
         // ============================================================
         // 📄 STEP 17: Document Upload
         // ============================================================
-        portalApplicationPage.clickPortalApplicationCTA("Continue");
-        portalApplicationPage.clickPortalApplicationCTA("Continue");
-        DocumentUploadPage documentUploadPage = new DocumentUploadPage(driver);
-        documentUploadPage.uploadDocumentsSequentially();
+//        portalApplicationPage.clickPortalApplicationCTA("Continue");
+//        portalApplicationPage.clickPortalApplicationCTA("Continue");
+//        DocumentUploadPage documentUploadPage = new DocumentUploadPage(driver);
+//        documentUploadPage.uploadDocumentsSequentially();
 
         // ============================================================
         // 🏁 STEP 18: Final Continuation
         // ============================================================
-        portalApplicationPage.clickPortalApplicationCTA("Continue");
-        Thread.sleep(3000);
+//        portalApplicationPage.clickPortalApplicationCTA("Continue");
+//        Thread.sleep(3000);
+            SignedDocumentPage signedDocumentPage= new SignedDocumentPage(driver);
+            Thread.sleep(3000);
+            signedDocumentPage.processAllSignedDocuments();
 
         logger.info("=== 🎉 Standard Incorporate Test Completed Successfully ===");
 

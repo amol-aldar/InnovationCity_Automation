@@ -119,58 +119,6 @@ public class LeadPage extends ReusableUtil {
         selectDropdownValue(nationalityBox, dropdownItemsXpath, nationality);
     }
 
-    /** Robust dropdown selection for Salesforce LWC */
-    private void selectDropdownValue(By dropdownButton, String dropdownItemsXpath, String valueToSelect) {
-        logger.info("[selectDropdownValue] Selecting '{}' from '{}'", valueToSelect, dropdownButton);
-
-        // Step 1: Wait for and click the dropdown button
-
-        WebElement button = waitForClickability(driver.findElement(dropdownButton));
-        scrollToElement(button);
-        try {
-            button.click();
-        } catch (ElementClickInterceptedException e) {
-            logger.warn("Click intercepted, using JS fallback...");
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", button);
-        }
-
-        // Step 2: Wait for dropdown items to appear (presence + visibility)
-        By itemLocator = By.xpath(String.format("%s[normalize-space(text())='%s']", dropdownItemsXpath, valueToSelect));
-        WebElement item = null;
-
-        int attempts = 0;
-        while (attempts < 3) { // retry a few times in case of lazy-render
-            try {
-                wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath(dropdownItemsXpath)));
-                item = wait.until(ExpectedConditions.visibilityOfElementLocated(itemLocator));
-                break; // found, exit loop
-            } catch (TimeoutException e) {
-                logger.warn("Dropdown item '{}' not yet visible, retrying... attempt {}", valueToSelect, attempts + 1);
-                scrollToElement(button); // scroll dropdown into view
-                sleep(500); // small wait before retry
-            }
-            attempts++;
-        }
-
-        if (item == null) {
-            throw new NoSuchElementException("Dropdown option not found: " + valueToSelect);
-        }
-
-        // Step 3: Scroll to item and click
-        scrollToElement(item);
-        try {
-            item.click();
-        } catch (ElementClickInterceptedException e) {
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", item);
-        }
-
-        logger.info("[selectDropdownValue] ✅ Selected '{}'", valueToSelect);
-    }
-
-    /** Utility: simple sleep wrapper */
-    private void sleep(long millis) {
-        try { Thread.sleep(millis); } catch (InterruptedException ignored) {}
-    }
 
     public void selectRoleDetailsCheckbox(String labelName, boolean shouldSelect){
             try {

@@ -4,7 +4,6 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.rakdao.utils.ReusableUtil;
@@ -600,64 +599,143 @@ public class OpportunityPage extends ReusableUtil {
 //        return new ContactPage(driver);
 //    }
 
+    public ServiceRequestPage goToServiceRequest(String serviceRequest) throws AWTException {
+        try {
+            // 1️⃣ Find the main SR link with normalized text
+            String xpath = String.format("//a[.//span//slot[contains(normalize-space(text()),'%s')]]", serviceRequest);
+            WebElement srEle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
+            waitForClickability(srEle);
+
+            // 2️⃣ Hover and click using Actions
+            Actions actions = new Actions(driver);
+            actions.moveToElement(srEle).pause(Duration.ofMillis(500)).click().build().perform();
+
+            // 3️⃣ Wait for the next element in table
+            String nextXpath = "//tbody/tr[1]//th[@data-label='Name']//a";
+            WebElement srElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(nextXpath)));
+            wait.until(ExpectedConditions.elementToBeClickable(srElement));
+
+            // 4️⃣ Hover and click the table link
+            actions.moveToElement(srElement).pause(Duration.ofMillis(300)).click().build().perform();
+
+            logger.info("✅ Successfully navigated to Service Request: {}", serviceRequest);
+
+        } catch (Exception e) {
+            logger.error("❌ Failed to go to Service Request '{}': {}", serviceRequest, e.getMessage());
+        }
+        return new ServiceRequestPage(driver);
+    }
+
+
+//    public ContactPage goToContactOrAccount(String headerLabel) throws AWTException {
+//        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));
+//        JavascriptExecutor js = (JavascriptExecutor) driver;
+//        Actions actions = new Actions(driver);
+//
+//        try {
+//            logger.info("🔄 Navigating to {} page by header label: '{}'",
+//                    headerLabel.contains("Contact") ? "Contact" : "Account", headerLabel);
+//
+//            driver.navigate().refresh();
+//            logger.info("🔃 Page refreshed successfully.");
+//
+//            // Wait for page readiness and base field to load
+//            WebElement entityType = wait.until(ExpectedConditions.visibilityOfElementLocated(
+//                    By.xpath("//p[normalize-space(text())='Entity Type']")));
+//            scrollToElement(entityType);
+//            logger.info("✅ Base element 'Entity Type' is visible. Proceeding to locate header: '{}'", headerLabel);
+//
+//            // Construct dynamic XPath for the field link
+//            String dynamicXPath = "//p[@class='slds-text-title slds-truncate' and normalize-space(text())='"
+//                    + headerLabel + "']/following-sibling::p//a";
+//
+//            WebElement linkElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(dynamicXPath)));
+//            scrollToElement(linkElement);
+//
+//            // Try standard click first
+//            try {
+//                wait.until(ExpectedConditions.elementToBeClickable(linkElement)).click();
+//                logger.info("✅ Clicked on link below header: '{}'", headerLabel);
+//            } catch (ElementClickInterceptedException ex) {
+//                logger.warn("⚠️ Standard click intercepted for '{}', retrying with JavaScript click...", headerLabel);
+//                js.executeScript("arguments[0].click();", linkElement);
+//                logger.info("✅ Clicked using JavaScript fallback for '{}'", headerLabel);
+//            }
+//
+//        } catch (TimeoutException e) {
+//            logger.error("❌ Timeout: Unable to locate link below header '{}'.", headerLabel, e);
+//
+//            // Fallback — try relaxed locator if DOM structure differs
+//            try {
+//                String fallbackXPath = "//a[contains(@href,'/lightning/r/') and contains(text(),'" + headerLabel.split(" ")[0] + "')]";
+//                WebElement fallbackLink = driver.findElement(By.xpath(fallbackXPath));
+//                scrollToElement(fallbackLink);
+//                js.executeScript("arguments[0].click();", fallbackLink);
+//                logger.info("✅ Fallback click succeeded for '{}'", headerLabel);
+//            } catch (Exception ex) {
+//                logger.error("❌ Fallback failed for header '{}': {}", headerLabel, ex.getMessage());
+//                throw new RuntimeException("Unable to find link for header: " + headerLabel, ex);
+//            }
+//
+//        } catch (Exception e) {
+//            logger.error("❌ Unexpected error while redirecting from Lead to {}: {}",
+//                    headerLabel, e.getMessage(), e);
+//            throw new RuntimeException("Failed to redirect to " + headerLabel, e);
+//        }
+//
+//        logger.info("➡️ Successfully navigated to {} detail page.", headerLabel);
+//        return new ContactPage(driver);
+//    }
+
     public ContactPage goToContactOrAccount(String headerLabel) throws AWTException {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));
         JavascriptExecutor js = (JavascriptExecutor) driver;
         Actions actions = new Actions(driver);
 
-        try {
-            logger.info("🔄 Navigating to {} page by header label: '{}'",
-                    headerLabel.contains("Contact") ? "Contact" : "Account", headerLabel);
+        logger.info("🔄 Navigating to {} page by header label: '{}'",
+                headerLabel.contains("Contact") ? "Contact" : "Account", headerLabel);
 
+        try {
             driver.navigate().refresh();
             logger.info("🔃 Page refreshed successfully.");
 
-            // Wait for page readiness and base field to load
-            WebElement entityType = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                    By.xpath("//p[normalize-space(text())='Entity Type']")));
-            scrollToElement(entityType);
-            logger.info("✅ Base element 'Entity Type' is visible. Proceeding to locate header: '{}'", headerLabel);
+            // Ensure base field is visible
+//            WebElement entityType = wait.until(ExpectedConditions.visibilityOfElementLocated(
+//                    By.xpath("//p[normalize-space(text())='Entity Type']")));
+//            scrollToElement(entityType);
 
-            // Construct dynamic XPath for the field link
-            String dynamicXPath = "//p[@class='slds-text-title slds-truncate' and normalize-space(text())='"
+            logger.info("✅ Base element 'Entity Type' visible. Locating header '{}'", headerLabel);
+
+            // Dynamic locator for Contact / Account link
+            String linkXpath = "//p[@class='slds-text-title slds-truncate' and normalize-space(text())='"
                     + headerLabel + "']/following-sibling::p//a";
 
-            WebElement linkElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(dynamicXPath)));
+            WebElement linkElement = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(linkXpath)));
             scrollToElement(linkElement);
 
-            // Try standard click first
-            try {
-                wait.until(ExpectedConditions.elementToBeClickable(linkElement)).click();
-                logger.info("✅ Clicked on link below header: '{}'", headerLabel);
-            } catch (ElementClickInterceptedException ex) {
-                logger.warn("⚠️ Standard click intercepted for '{}', retrying with JavaScript click...", headerLabel);
-                js.executeScript("arguments[0].click();", linkElement);
-                logger.info("✅ Clicked using JavaScript fallback for '{}'", headerLabel);
-            }
+            logger.info("🔗 Link found for '{}'. Opening in new tab...", headerLabel);
 
-        } catch (TimeoutException e) {
-            logger.error("❌ Timeout: Unable to locate link below header '{}'.", headerLabel, e);
+            // === OPEN IN NEW TAB ===
+            actions.keyDown(Keys.CONTROL)
+                    .click(linkElement)
+                    .keyUp(Keys.CONTROL)
+                    .build()
+                    .perform();
 
-            // Fallback — try relaxed locator if DOM structure differs
-            try {
-                String fallbackXPath = "//a[contains(@href,'/lightning/r/') and contains(text(),'" + headerLabel.split(" ")[0] + "')]";
-                WebElement fallbackLink = driver.findElement(By.xpath(fallbackXPath));
-                scrollToElement(fallbackLink);
-                js.executeScript("arguments[0].click();", fallbackLink);
-                logger.info("✅ Fallback click succeeded for '{}'", headerLabel);
-            } catch (Exception ex) {
-                logger.error("❌ Fallback failed for header '{}': {}", headerLabel, ex.getMessage());
-                throw new RuntimeException("Unable to find link for header: " + headerLabel, ex);
-            }
+            logger.info("🆕 Link opened in new tab for '{}'", headerLabel);
+
+            // === SWITCH TO NEW TAB ===
+            switchToWindowByIndex(1);
+
+            logger.info("🪟 Successfully switched to new tab for '{}'", headerLabel);
 
         } catch (Exception e) {
-            logger.error("❌ Unexpected error while redirecting from Lead to {}: {}",
-                    headerLabel, e.getMessage(), e);
-            throw new RuntimeException("Failed to redirect to " + headerLabel, e);
+            logger.error("❌ Error navigating to {} page: {}", headerLabel, e.getMessage(), e);
+            throw new RuntimeException("Failed to open " + headerLabel + " in new tab", e);
         }
 
-        logger.info("➡️ Successfully navigated to {} detail page.", headerLabel);
         return new ContactPage(driver);
     }
+
 
 }

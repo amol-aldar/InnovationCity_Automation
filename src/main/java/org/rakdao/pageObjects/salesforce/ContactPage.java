@@ -27,7 +27,7 @@ public class ContactPage extends ReusableUtil {
 
     // 🔹 Page Elements
     @FindBy(xpath = "//button[normalize-space(text())='Log in to Experience as User']")
-    private WebElement loginButton;
+    private WebElement loginASUserButton;
 
 
 
@@ -37,16 +37,16 @@ public class ContactPage extends ReusableUtil {
         logger.info("🔍 Attempting to click 'Log in to Experience as User' button on ContactPage...");
 
         try {
-            waitForClickability(loginButton);
+            waitForClickability(loginASUserButton);
             logger.info("🟢 Login button is clickable. Proceeding to click...");
-            loginButton.click();
+            loginASUserButton.click();
             logger.info("✅ Successfully clicked 'Log in to Experience as User'.");
 
         } catch (TimeoutException te) {
             logger.warn("⚠️ Login button not clickable initially. Retrying with fallback scroll and JS click...");
             try {
-                scrollToElement( loginButton);
-                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loginButton);
+                scrollToElement( loginASUserButton);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loginASUserButton);
 
                 logger.info("✅ Fallback: Clicked 'Log in to Experience as User' using JavaScript.");
             } catch (Exception jsEx) {

@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.time.Duration;
 import java.util.List;
 import java.util.Random;
@@ -76,14 +75,6 @@ public class PortalApplicationPage extends ReusableUtil {
 
     @FindBy(css="#submitBtn")
     private WebElement payButtonEle;
-
-
-
-
-
-
-
-
 
 
     @FindBy(xpath = "//input[@name='companyName' or @placeholder='Enter Company Name']")
@@ -150,6 +141,8 @@ public class PortalApplicationPage extends ReusableUtil {
     private List<WebElement> ctas;
 
     //Shareholder details
+    private By addShareholderBtn = By.xpath("//span[normalize-space(text())='Add Shareholder']");
+
     @FindBy(xpath = "//input[contains(@id,'Total_Number_of_Shares')]")
     private WebElement shareNumberInput;
 
@@ -345,6 +338,7 @@ public class PortalApplicationPage extends ReusableUtil {
             logger.error("❌ Failed during name approval action (shouldWait={}): {}", shouldWait, e.getMessage());
             throw e;
         }
+        switchToWindowByIndex(0);
     }
 
     private void clickUsingJS(WebElement element) {
@@ -608,16 +602,13 @@ public class PortalApplicationPage extends ReusableUtil {
         }
     }
 
-
-
-
     public void enterRegisteredOfficeAddress() {
         String address = "Suite " + (100 + random.nextInt(400)) + ", Business Bay";
         typeAndLog(registeredOfficeAddressInput, address, "Registered Office Address");
     }
 
 
-    public void clickPortalApplicationCTA(String ctaLabel) {
+    public DocumentUploadPage clickPortalApplicationCTA(String ctaLabel) throws AWTException {
         String xpath = String.format("//div[contains(@class,'slds-grid')]//button[.//span[normalize-space()='%s']]", ctaLabel);
         By ctaLocator = By.xpath(xpath);
 
@@ -641,6 +632,7 @@ public class PortalApplicationPage extends ReusableUtil {
         } catch (Exception e) {
             logger.error("❌ Unexpected error while clicking '{}': {}", ctaLabel, e.getMessage());
         }
+        return new DocumentUploadPage(driver);
     }
 
 
@@ -708,6 +700,26 @@ public class PortalApplicationPage extends ReusableUtil {
 
 
     //Shareholder details
+    public void addOnlyIndividualShareholder(String shareholderType, String gender, String birthCountry, String nationality, String passportIssueCountry){
+        clickAddShareholder(shareholderType);
+        enterShareholderFname();
+        enterShareholderLname();
+        selectGender(gender);
+        selectBirthCountry(birthCountry);
+        enterShareholderPlaceOfBirth();
+        selectNationality(nationality);
+        enterShareholderPassportNum();
+        enterDateOfBirth();
+        enterPassportIssueDate();
+        enterPassportExpiryDate();
+        selectPassportIssueCountry(passportIssueCountry);
+        clickProceedButton();
+    }
+
+    public void addOnlyCorporateShareholder(String shareholderType, String gender, String birthCountry, String nationality, String passportIssueCountry){
+        clickAddShareholder("Corporate");
+    }
+
 
     public void enterNumberOfShares(){
 
@@ -751,6 +763,41 @@ public class PortalApplicationPage extends ReusableUtil {
             logger.error("❌ Unexpected error clicking '{}' Shareholder: {}", formattedType, e.getMessage());
             throw new RuntimeException("Error clicking shareholder option: " + formattedType, e);
         }
+    }
+
+    public void ClickForSecondIndividualOrCorporateShareholder(String type) {
+
+        Actions actions = new Actions(driver);
+
+        try {
+            // 1️⃣ Wait for and hover over Add Shareholder button
+
+            WebElement btn = wait.until(ExpectedConditions.visibilityOfElementLocated(addShareholderBtn));
+
+            ((JavascriptExecutor) driver).executeScript(
+                    "arguments[0].scrollIntoView({block:'center'});", btn);
+
+            Thread.sleep(200);
+
+            actions.moveToElement(btn).pause(Duration.ofMillis(300)).perform();
+            logger.info("🖱 Hovered on Add Shareholder");
+
+            // 2️⃣ Now locate the option dynamically (based on data-name)
+            WebElement option = wait.until(ExpectedConditions
+                    .visibilityOfElementLocated(shareholderOption(type)));
+
+            actions.moveToElement(option).pause(Duration.ofMillis(200)).click().perform();
+
+            logger.info("✅ Selected Shareholder Type: {}", type);
+
+        } catch (Exception e) {
+            logger.error("❌ Failed selecting shareholder type '{}': {}", type, e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    private By shareholderOption(String type) {
+        return By.xpath("//div[@class='dao-add-shareholder-options dao-heading-color slds-var-p-vertical_small dao-text-16-book' and @data-name='" + type + "']");
     }
 
 

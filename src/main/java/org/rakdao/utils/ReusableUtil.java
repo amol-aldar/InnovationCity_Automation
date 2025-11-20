@@ -1,6 +1,7 @@
 package org.rakdao.utils;
 
 import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.*;
 import org.rakdao.pageObjects.BasePage;
@@ -12,6 +13,7 @@ import java.awt.event.KeyEvent;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -24,6 +26,8 @@ public class ReusableUtil {
 
     @FindBy(xpath="//lightning-spinner[@alternative-text='Loading']")
     protected WebElement spinner;
+
+
 
     public ReusableUtil(WebDriver driver) throws AWTException {
         this.driver = driver;
@@ -389,6 +393,109 @@ public class ReusableUtil {
             logger.error("⚠️ Failed while zooming in.", e);
         }
     }
+
+    public void switchToWindowByIndex(int index) {
+        List<String> windows = new ArrayList<>(driver.getWindowHandles());
+
+        if (index < 0 || index >= windows.size()) {
+            throw new RuntimeException("Invalid window index: " + index);
+        }
+
+        driver.switchTo().window(windows.get(index));
+        logger.info("🔀 Switched to window index {} | Title: {}", index, driver.getTitle());
+    }
+
+    /** Robust dropdown selection for Salesforce LWC */
+    protected void selectDropdownValue(By dropdownButton, String dropdownItemsXpath, String valueToSelect) {
+        logger.info("[selectDropdownValue] Selecting '{}' from '{}'", valueToSelect, dropdownButton);
+
+        // Step 1: Wait for and click the dropdown button
+
+        WebElement button = waitForClickability(driver.findElement(dropdownButton));
+        scrollToElement(button);
+        try {
+            button.click();
+        } catch (ElementClickInterceptedException e) {
+            logger.warn("Click intercepted, using JS fallback...");
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", button);
+        }
+
+        // Step 2: Wait for dropdown items to appear (presence + visibility)
+        By itemLocator = By.xpath(String.format("%s[normalize-space(text())='%s']", dropdownItemsXpath, valueToSelect));
+        WebElement item = null;
+
+        int attempts = 0;
+        while (attempts < 3) { // retry a few times in case of lazy-render
+            try {
+                wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath(dropdownItemsXpath)));
+                item = wait.until(ExpectedConditions.visibilityOfElementLocated(itemLocator));
+                break; // found, exit loop
+            } catch (TimeoutException e) {
+                logger.warn("Dropdown item '{}' not yet visible, retrying... attempt {}", valueToSelect, attempts + 1);
+                scrollToElement(button); // scroll dropdown into view
+                sleep(500); // small wait before retry
+            }
+            attempts++;
+        }
+
+        if (item == null) {
+            throw new java.util.NoSuchElementException("Dropdown option not found: " + valueToSelect);
+        }
+
+        // Step 3: Scroll to item and click
+        scrollToElement(item);
+        try {
+            item.click();
+        } catch (ElementClickInterceptedException e) {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", item);
+        }
+
+        logger.info("[selectDropdownValue] ✅ Selected '{}'", valueToSelect);
+    }
+
+    /** Utility: simple sleep wrapper */
+    private void sleep(long millis) {
+        try { Thread.sleep(millis); } catch (InterruptedException ignored) {}
+    }
+
+    public void selectFromDropdown(By locator, String value) {
+        try {
+            WebElement dropdown = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+
+            // Scroll
+            ((JavascriptExecutor) driver).executeScript(
+                    "arguments[0].scrollIntoView({block: 'center'});", dropdown);
+
+            wait.until(ExpectedConditions.elementToBeClickable(dropdown));
+
+            Select select = new Select(dropdown);
+
+            try {
+                select.selectByVisibleText(value);
+            } catch (NoSuchElementException e1) {
+                // Fallback to select by value attribute
+                select.selectByValue(value);
+            }
+
+            System.out.println("Selected dropdown value: " + value);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed selecting '" + value + "' → " + e.getMessage(), e);
+        }
+    }
+
+    protected void scrollToElementSmooth(WebElement element) {
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
+                element
+        );
+    }
+
+    protected void scrollIntoView(WebElement element) {
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", element);
+    }
+
+
 
 
 }

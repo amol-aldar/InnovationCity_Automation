@@ -4,11 +4,9 @@ import org.rakdao.base.BaseClass;
 import org.rakdao.pageObjects.portal.DocumentUploadPage;
 import org.rakdao.pageObjects.portal.PortalApplicationPage;
 import org.rakdao.pageObjects.portal.PortalHomePage;
+import org.rakdao.pageObjects.portal.SignedDocumentPage;
 import org.rakdao.pageObjects.salesforce.*;
-import org.rakdao.utils.ConfigReader;
-import org.rakdao.utils.LoggerUtil;
-import org.rakdao.utils.User;
-import org.rakdao.utils.UserGenerator;
+import org.rakdao.utils.*;
 import org.slf4j.Logger;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
@@ -110,11 +108,13 @@ public class StandardIncorporate extends BaseClass {
             opportunityPage.clickOpportunityStage("Closing");
             opportunityPage.clickOpportunityCompleteButton();
             log.info("✅ Product selection & Opportunity completion done.");
+            ServiceRequestPage serviceRequestPage=opportunityPage.goToServiceRequest("Service Requests");
 
             // ============================================================
             // 🌐 STEP 9: Open Portal and continue application
             // ============================================================
-            ContactPage contactPage = opportunityPage.goToContactOrAccount("Primary Contact");
+//          ContactPage contactPage = opportunityPage.goToContactOrAccount("Primary Contact");
+            ContactPage contactPage = serviceRequestPage.goToContactOrAccount("Contact");
             PortalHomePage portalHomePage = contactPage.goToPortal();
             PortalApplicationPage portalApplicationPage = portalHomePage.clickContinueWithApplication();
 
@@ -128,7 +128,7 @@ public class StandardIncorporate extends BaseClass {
             portalApplicationPage.selectBusinessActivity("Blockchain Oracle");
             portalApplicationPage.selectCompanyTypeForCustomer("Company Limited by Shares");
             portalApplicationPage.selectCompany("Limited");
-            portalApplicationPage.selectCompanyOwnedBy("Individual Shareholders");
+            portalApplicationPage.selectCompanyOwnedBy("Both");
             portalApplicationPage.selectJurisdictionType("Civil Law");
             portalApplicationPage.clickPortalApplicationCTA("Save As Draft");
             portalApplicationPage.clickPortalApplicationCTA("Continue");
@@ -137,12 +137,20 @@ public class StandardIncorporate extends BaseClass {
             // 🕒 STEP 11: Handle Name Approval (Dynamic)
             // ============================================================
             portalApplicationPage.shouldWaitNameApproval("No");
+            serviceRequestPage.expandBackOfficeAccordion("Standard Company Incorporation Assessment");
+            serviceRequestPage.clickBackOfficeInternalCompleteStep("Review Company Names");
+            serviceRequestPage.clickCtaButton("Next");
+            serviceRequestPage.selectFirstCompanyName();
+            serviceRequestPage.selectApproverDecision("Approve");
+            serviceRequestPage.clickCtaButton("Next");
+            serviceRequestPage.clickCtaButton("Submit");
+            serviceRequestPage.clickCtaButton("Finish");
+            serviceRequestPage.switchToWindowByIndex(1);
 
             // ============================================================
             // 💳 STEP 12: Select Payment Method and Process Payment
             // ============================================================
             portalApplicationPage.selectPaymentMethod("Credit/Debit Card");
-//            portalApplicationPage.acceptTermsAndConditions();
             portalApplicationPage.clickPortalApplicationCTA("Proceed With Payment");
             portalApplicationPage.enterPaymentDetails("41111111111111111", "12/30", "123", "Amol");
 
@@ -151,19 +159,9 @@ public class StandardIncorporate extends BaseClass {
             // ============================================================
             portalApplicationPage.enterNumberOfShares();
             portalApplicationPage.enterShareValue();
-            portalApplicationPage.clickAddShareholder("Individual");
-            portalApplicationPage.enterShareholderFname();
-            portalApplicationPage.enterShareholderLname();
-            portalApplicationPage.selectGender("Male");
-            portalApplicationPage.selectBirthCountry("India");
-            portalApplicationPage.enterShareholderPlaceOfBirth();
-            portalApplicationPage.selectNationality("India");
-            portalApplicationPage.enterShareholderPassportNum();
-            portalApplicationPage.enterDateOfBirth();
-            portalApplicationPage.enterPassportIssueDate();
-            portalApplicationPage.enterPassportExpiryDate();
-            portalApplicationPage.selectPassportIssueCountry("India");
-            portalApplicationPage.clickProceedButton();
+            portalApplicationPage.addOnlyIndividualShareholder("Individual","Male","India","India","India");
+//            portalApplicationPage.addOnlyCorporateShareholder("Corporate","Male","India","India","India");
+
 
             portalApplicationPage.selectVisaType("No UAE Visa");
             portalApplicationPage.clickProceedButton();
@@ -209,15 +207,17 @@ public class StandardIncorporate extends BaseClass {
             // 📄 STEP 17: Document Upload
             // ============================================================
             portalApplicationPage.clickPortalApplicationCTA("Continue");
-            portalApplicationPage.clickPortalApplicationCTA("Continue");
-            DocumentUploadPage documentUploadPage = new DocumentUploadPage(driver);
+            DocumentUploadPage documentUploadPage =portalApplicationPage.clickPortalApplicationCTA("Continue");
             documentUploadPage.uploadDocumentsSequentially();
+            driver.navigate().refresh();
 
             // ============================================================
             // 🏁 STEP 18: Final Continuation
             // ============================================================
             portalApplicationPage.clickPortalApplicationCTA("Continue");
+            SignedDocumentPage signedDocumentPage=documentUploadPage.clickAttentionDialogCTA("OKAY");
             Thread.sleep(3000);
+            signedDocumentPage.processAllSignedDocuments();
 
             log.info("=== 🎉 Standard Incorporate Test Completed Successfully ===");
 
